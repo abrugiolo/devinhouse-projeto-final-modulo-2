@@ -1,0 +1,25 @@
+###
+GET http://localhost:8081/processo/
+
+###
+GET http://localhost:8081/processo/id/8
+
+###
+GET http://localhost:8081/processo/numero/1
+
+###
+POST http://localhost:8081/processo/
+Content-Type: application/json
+
+{
+  "nuProcesso": 1,
+  "nuAno": "2021",
+  "chaveProcesso": "SOFT 6/2021",
+  "descricao": "teste processo 1",
+  "cdAssunto": {
+    "id": 1
+  },
+  "cdInteressado": {
+    "id": 1
+  }
+}
