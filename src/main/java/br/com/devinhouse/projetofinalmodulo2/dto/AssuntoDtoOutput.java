@@ -7,11 +7,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class InteressadoDto {
+public class AssuntoDtoOutput {
 
     private Integer id;
-    private String nmInteressado;
-    private String nuIdentificacao;
-    private String dtNascimento;
+    private String descricao;
+    private String dtCadastro;
     private Character flAtivo;
 }

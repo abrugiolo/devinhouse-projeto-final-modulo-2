@@ -4,15 +4,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import javax.persistence.Column;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class AssuntoDto {
-
-    private Integer id;
-    private String descricao;
-    private String dtCadastro;
+public class InteressadoDtoInput {
+    private String nmInteressado;
+    private String nuIdentificacao;
+    private String dtNascimento;
     private Character flAtivo;
 }

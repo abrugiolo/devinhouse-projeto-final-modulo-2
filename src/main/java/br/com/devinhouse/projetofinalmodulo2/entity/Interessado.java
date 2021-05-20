@@ -22,7 +22,7 @@ public class Interessado {
     private String nuIdentificacao;
 
     @Column(nullable = false)
-    private String dtNascimento;
+    private String dtNascimento; // String => LocalDate
 
     @Column(nullable = false)
     private Character flAtivo;

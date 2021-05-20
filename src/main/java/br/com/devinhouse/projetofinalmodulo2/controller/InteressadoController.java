@@ -1,6 +1,7 @@
 package br.com.devinhouse.projetofinalmodulo2.controller;
 
-import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDto;
+import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoInput;
+import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.services.InteressadoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -34,9 +35,9 @@ public class InteressadoController {
     }
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> cadastrarInteressado(@RequestBody InteressadoDto interessadoDto) {
+    public ResponseEntity<?> cadastrarInteressado(@RequestBody InteressadoDtoInput interessadoDtoInput) {
 
-        return interessadoService.cadastrarInteressado(interessadoDto);
+        return interessadoService.cadastrarInteressado(interessadoDtoInput);
     }
 
 }

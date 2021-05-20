@@ -1,8 +1,9 @@
 package br.com.devinhouse.projetofinalmodulo2.controller;
 
-import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDto;
+import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.services.AssuntoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,9 +29,9 @@ public class AssuntoController {
     }
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> cadastrarAssunto(@RequestBody AssuntoDto assuntoDto) {
+    public ResponseEntity<?> cadastrarAssunto(@RequestBody AssuntoDtoInput assuntoDtoInput) {
 
-        return assuntoService.cadastrarAssunto(assuntoDto);
+        return assuntoService.cadastrarAssunto(assuntoDtoInput);
     }
 
 }
