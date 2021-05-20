@@ -1,16 +1,10 @@
 package br.com.devinhouse.projetofinalmodulo2.controller;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDto;
-import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
-import br.com.devinhouse.projetofinalmodulo2.entity.Processo;
 import br.com.devinhouse.projetofinalmodulo2.services.ProcessoService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -21,46 +15,32 @@ public class ProcessoController {
 	
 	@Autowired
 	private ProcessoService processoService;
-	
-	@Autowired
-	private ModelMapper modelMapper;
 
-	@GetMapping(path = "/{interessado}")
-	public ResponseEntity<List<ProcessoDto>> buscarProcessosPorInteressado(@PathVariable Interessado interessado) {
-		List<Processo> listaProcessos = processoService.buscarProcessosPorInteressado(interessado);
-		List<ProcessoDto> listaProcessosDto = listaProcessos
-				.stream()
-				.map(this::converteParaDto)
-				.collect(Collectors.toList());
-		return ResponseEntity.ok(listaProcessosDto);
-	}
-	
-	private ProcessoDto converteParaDto(Processo processo) {
-		return modelMapper.map(processo, ProcessoDto.class);
+	//passar valor por request param exemplo: BASE_URL/processo?idInteressado=2
+	@GetMapping(path = "/interessado", produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> buscarProcessosPorInteressado(@RequestParam Integer idInteressado) {
+		return processoService.buscarProcessosPorInteressado(idInteressado);
 	}
 
-	@GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
-	public List<Processo> listarTodosOsProcessos() {
-
+	@GetMapping(path = "/lista", produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> listarTodosOsProcessos() {
 		return processoService.buscarTodosOsProcessos();
 	}
 
-	@GetMapping(value = "/id/{id}", produces = APPLICATION_JSON_VALUE)
-	public Processo buscarProcessoPeloId(@PathVariable Integer id) {
-
+	@GetMapping(path = "/{id}", produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> buscarProcessoPeloId(@PathVariable Integer id) {
 		return processoService.buscarProcessoPeloId(id);
 	}
 
 	// ERRO AQUI!
-	@GetMapping(value = "/numero/{nuProcesso}", produces = APPLICATION_JSON_VALUE)
-	public Processo buscarProcessoPeloNumero(@PathVariable Integer nuProcesso) {
-
-		return processoService.buscarProcessoPeloNumero(nuProcesso);
+	//corrigir o erro. Ambiguidade nos paths
+	@GetMapping(produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> buscarProcessoPeloNumeroProcesso(@RequestParam Integer nuProcesso) {
+		return processoService.buscarProcessoPeloNumeroProcesso(nuProcesso);
 	}
 
-	@PostMapping(value = "/", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-	public Processo cadastrarProcesso(@RequestBody Processo processo) {
-
+	@PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?>cadastrarProcesso(@RequestBody ProcessoDto processo) {
 		return processoService.cadastrarProcesso(processo);
 	}
 }
