@@ -10,7 +10,9 @@ import java.util.Optional;
 @Repository
 public interface InteressadoRepository extends JpaRepository<Interessado, Integer>{
 
+
     Optional<Interessado> findByNuIdentificacao(String nuIdentificacao);
 
     boolean existsByNuIdentificacao(String nuIdentificacao);
+
 }

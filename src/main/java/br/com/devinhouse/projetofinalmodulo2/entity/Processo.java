@@ -11,7 +11,12 @@ import lombok.Setter;
 public class Processo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Integer id;
+    
+    @Column(nullable = false, length = 4)
+    private Character sgOrgaoSetor;
+
 
     @Column(nullable = false)
     private Integer nuProcesso;
