@@ -12,6 +12,9 @@ public class Processo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    
+    @Column(nullable = false, length = 4)
+    private Character sgOrgaoSetor;
 
     @Column(nullable = false)
     private int nuProcesso;

@@ -7,5 +7,4 @@ import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
 
 @Repository
 public interface InteressadoRepository extends JpaRepository<Interessado, Integer>{
-
 }
