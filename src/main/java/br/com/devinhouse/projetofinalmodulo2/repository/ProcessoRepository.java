@@ -13,7 +13,7 @@ import br.com.devinhouse.projetofinalmodulo2.entity.Processo;
 public interface ProcessoRepository extends JpaRepository<Processo, Integer>{
 	List<Processo> findBycdInteressado(Interessado interessado);
 
-	Optional<Processo> findByNuProcesso(Integer nuProcesso);
+	Optional<List<Processo>> findByNuProcesso(Integer nuProcesso);
 
 	boolean existsByChaveProcesso(String chaveProcesso);
 }

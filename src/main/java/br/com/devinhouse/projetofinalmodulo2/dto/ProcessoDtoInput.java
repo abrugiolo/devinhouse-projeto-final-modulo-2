@@ -10,7 +10,7 @@ import lombok.Setter;
 public class ProcessoDtoInput {
 	
 	private Integer nuProcesso;
-	private Character sgOrgaoSetor;
+	private String sgOrgaoSetor;
 	private String nuAno;
 	private String chaveProcesso;
 	private String descricao;

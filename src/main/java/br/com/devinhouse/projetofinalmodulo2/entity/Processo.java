@@ -15,7 +15,7 @@ public class Processo {
     private Integer id;
     
     @Column(nullable = false, length = 4)
-    private Character sgOrgaoSetor;
+    private String sgOrgaoSetor;
 
 
     @Column(nullable = false)

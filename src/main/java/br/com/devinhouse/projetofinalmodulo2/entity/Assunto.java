@@ -19,7 +19,7 @@ public class Assunto {
     private String descricao;
 
     @Column(nullable = false)
-    private String dtCadastro; // String => LocalDate
+    private String dtCadastro; // TODO String => LocalDate
 
     @Column(nullable = false)
     private Character flAtivo;
