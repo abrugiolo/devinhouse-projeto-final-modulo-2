@@ -1,8 +1,15 @@
 package br.com.devinhouse.projetofinalmodulo2.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class Assunto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,39 +22,5 @@ public class Assunto {
     private String dtCadastro; // String => LocalDate
 
     @Column(nullable = false)
-    private char flAtivo;
-
-    public Assunto() {}
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
-    public String getDtCadastro() {
-        return dtCadastro;
-    }
-
-    public void setDtCadastro(String dtCadastro) {
-        this.dtCadastro = dtCadastro;
-    }
-
-    public char getFlAtivo() {
-        return flAtivo;
-    }
-
-    public void setFlAtivo(char flAtivo) {
-        this.flAtivo = flAtivo;
-    }
+    private Character flAtivo;
 }
