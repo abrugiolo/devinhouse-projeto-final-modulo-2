@@ -11,13 +11,15 @@ import lombok.Setter;
 public class Processo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+
+    private Integer id;
     
     @Column(nullable = false, length = 4)
     private Character sgOrgaoSetor;
 
+
     @Column(nullable = false)
-    private int nuProcesso;
+    private Integer nuProcesso;
 
     @Column(nullable = false, length = 4)
     private String nuAno;

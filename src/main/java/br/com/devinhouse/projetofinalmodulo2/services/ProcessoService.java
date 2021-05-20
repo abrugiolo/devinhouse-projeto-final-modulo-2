@@ -1,8 +1,11 @@
 package br.com.devinhouse.projetofinalmodulo2.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
+import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +30,9 @@ public class ProcessoService {
 	private InteressadoRepository interessadoRepository;
 
 	@Autowired
+	private AssuntoRepository assuntoRepository;
+
+	@Autowired
 	private ModelMapper modelMapper;
 
 	private ProcessoDtoOutput converteParaDto(Processo processo) {
@@ -42,11 +48,9 @@ public class ProcessoService {
 			return new ResponseEntity<>("Interessado não encontrado.", HttpStatus.BAD_REQUEST);
 		}
 		Interessado interessado = interessadoRepository.findById(idInteressado).get();
+		if (interessado.getFlAtivo().equals('n')) {
+			return new ResponseEntity<>("Interessado inativo", HttpStatus.BAD_REQUEST);
 
-		// tratamento para interessados inativos ?
-		// Manter essa parte?
-		if (interessado.getFlAtivo() == 'n') {
-			return new ResponseEntity<>("Interessado inativo.", HttpStatus.BAD_REQUEST);
 		}
 		List<Processo> listaProcessos = processoRepository.findBycdInteressado(interessado);
 		List<ProcessoDtoOutput> listaProcessosDto = listaProcessos.stream().map(this::converteParaDto)
@@ -131,6 +135,18 @@ public class ProcessoService {
 			return new ResponseEntity<>("Interessado não encontrado.", HttpStatus.BAD_REQUEST);
 		}
 		
+		// TODO: verificar se interessado e assunto existem e estao ativos
+
+		Interessado interessado = interessadoRepository.findById(processo.getCdInteressado().getId()).orElse(null);
+		if (interessado != null && interessado.getFlAtivo().equals('n')) {
+			return new ResponseEntity<>("Não foi possível cadastrar o processo: Interessado inativo.", HttpStatus.BAD_REQUEST);
+		}
+
+		Assunto assunto = assuntoRepository.findById(processo.getCdAssunto().getId()).orElse(null);
+		if (assunto != null && assunto.getFlAtivo().equals('n')) {
+			return new ResponseEntity<>("Não foi possível cadastrar o processo: Assunto inativo.", HttpStatus.BAD_REQUEST);
+		}
+
 		processoRepository.save(processo);
 		return new ResponseEntity<>("Processo atualizado com sucesso.", HttpStatus.OK);
 	}
