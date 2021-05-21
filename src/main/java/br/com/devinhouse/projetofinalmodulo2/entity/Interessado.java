@@ -20,7 +20,7 @@ public class Interessado {
     private String nmInteressado;
 
     @Column(nullable = false, length = 250, unique = true)
-    private String nuIdentificacao;
+    private String nuIdentificacao; 
 
     @Column(nullable = false)
     private LocalDate dtNascimento;

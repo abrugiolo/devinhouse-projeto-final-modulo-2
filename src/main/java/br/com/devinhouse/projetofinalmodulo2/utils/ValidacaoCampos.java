@@ -35,7 +35,7 @@ public class ValidacaoCampos {
 
         if (object.getClass() == ProcessoDtoInput.class) {
             ProcessoDtoInput processo = (ProcessoDtoInput) object;
-            return processo.getNuProcesso() != null && processo.getSgOrgaoSetor() != null && processo.getNuAno() != null && processo.getDescricao() != null && processo.getCdAssunto() != null && processo.getCdInteressado() != null;
+            return processo.getSgOrgaoSetor() != null && processo.getNuAno() != null && processo.getDescricao() != null && processo.getCdAssunto() != null && processo.getCdInteressado() != null;
         }
 
         return false;

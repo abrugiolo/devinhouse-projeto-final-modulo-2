@@ -65,7 +65,8 @@ public class AssuntoService {
         }
 
         if (!ValidacaoCampos.validarData(assuntoDtoInput.getDtCadastro())) {
-            return new ResponseEntity<>(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", assuntoDtoInput.getDtCadastro()), BAD_REQUEST);
+            return new ResponseEntity<>(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", 
+            		assuntoDtoInput.getDtCadastro()), BAD_REQUEST);
         }
 
         if (!ValidacaoCampos.validarFlAtivo(assuntoDtoInput.getFlAtivo())) {

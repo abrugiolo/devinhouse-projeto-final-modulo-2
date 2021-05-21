@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
-@RequestMapping(path="/interessado")
+@RequestMapping(path="/interessado/v1")
 public class InteressadoController {
 
     @Autowired

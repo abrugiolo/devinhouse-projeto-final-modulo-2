@@ -38,6 +38,11 @@ public class InteressadoService {
         modelMapper.addConverter(new ConversorLocalDateParaString());
         return modelMapper.map(interessado, InteressadoDtoOutput.class);
     }
+    
+	private boolean validarNuIdentificacao(String nuIdentificacao) {
+		String regex = "\\d{11}";
+		return nuIdentificacao.matches(regex);
+	}
 
     public ResponseEntity<?> buscarTodosOsInteressados() {
         List<Interessado> listaInteressados = interessadoRepository.findAll();
@@ -46,7 +51,10 @@ public class InteressadoService {
             return new ResponseEntity<>("Não existem interessados cadastrados.", OK);
         }
 
-        List<InteressadoDtoOutput> listaInteressadoDtoOutput = listaInteressados.stream().map(this::converteParaDto).collect(Collectors.toList());
+        List<InteressadoDtoOutput> listaInteressadoDtoOutput = listaInteressados
+        		.stream()
+        		.map(this::converteParaDto)
+        		.collect(Collectors.toList());
 
         return new ResponseEntity<>(listaInteressadoDtoOutput, OK);
     }
@@ -65,7 +73,8 @@ public class InteressadoService {
         Interessado interessado = interessadoRepository.findByNuIdentificacao(nuIdentificacao).orElse(null);
 
         if (interessado == null) {
-            return new ResponseEntity<>(String.format("Nenhum interessado encontrado com número de identificação '%s'.", nuIdentificacao), NOT_FOUND);
+            return new ResponseEntity<>(String.format("Nenhum interessado encontrado com número de identificação '%s'.", 
+            		nuIdentificacao), NOT_FOUND);
         }
 
         return new ResponseEntity<>(converteParaDto(interessado), OK);
@@ -78,19 +87,25 @@ public class InteressadoService {
         }
 
         if (!ValidacaoCampos.validarData(interessadoDtoInput.getDtNascimento())) {
-            return new ResponseEntity<>(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", interessadoDtoInput.getDtNascimento()), BAD_REQUEST);
+            return new ResponseEntity<>(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", 
+            		interessadoDtoInput.getDtNascimento()), BAD_REQUEST);
         }
 
         if (!ValidacaoCampos.validarFlAtivo(interessadoDtoInput.getFlAtivo())) {
             return new ResponseEntity<>("Campo 'flAtivo' deve ser igual a 's' ou 'n'.", BAD_REQUEST);
         }
-
+        
+        if (!validarNuIdentificacao(interessadoDtoInput.getNuIdentificacao())) {
+        	return new ResponseEntity<>("Número de identificação deve ter 11 dígitos.", BAD_REQUEST);
+        }
+        
         if (interessadoRepository.existsByNuIdentificacao(interessadoDtoInput.getNuIdentificacao())) {
-            return new ResponseEntity<>(String.format("Já existe um cadastro com o número de identificação '%s'.", interessadoDtoInput.getNuIdentificacao()), CONFLICT);
+            return new ResponseEntity<>(String.format("Já existe um cadastro com o número de identificação '%s'.", 
+            		interessadoDtoInput.getNuIdentificacao()), CONFLICT);
         }
 
         // TODO: verificar validade do numero de identificacao
-
+        
         Interessado interessado = converteParaInteressado(interessadoDtoInput);
         interessadoRepository.save(interessado);
 

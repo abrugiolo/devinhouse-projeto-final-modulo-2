@@ -10,7 +10,7 @@ import br.com.devinhouse.projetofinalmodulo2.services.ProcessoService;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
-@RequestMapping(path = "/processo")
+@RequestMapping(path = "/processo/v1")
 public class ProcessoController {
 
 	@Autowired
