@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -19,8 +20,9 @@ public class Assunto {
     private String descricao;
 
     @Column(nullable = false)
-    private String dtCadastro; // String => LocalDate
+    private LocalDate dtCadastro;
 
     @Column(nullable = false)
     private Character flAtivo;
 }
+

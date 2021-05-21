@@ -1,7 +1,6 @@
 package br.com.devinhouse.projetofinalmodulo2.controller;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoInput;
-import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.services.InteressadoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,22 +15,15 @@ public class InteressadoController {
     @Autowired
     private InteressadoService interessadoService;
 
-    @GetMapping(path="/lista", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> buscarTodosOsInteressados() {
-
+    @GetMapping(produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> pesquisarInteressado(@RequestParam(name = "id", required = false) Integer id, @RequestParam(name = "identificacao", required = false) String identificacao) {
+        if (id != null) {
+            return interessadoService.buscarInteressadoPeloId(id);
+        }
+        if (identificacao != null) {
+            return interessadoService.buscarInteressadoPeloNumeroDeIdentificacao(identificacao);
+        }
         return interessadoService.buscarTodosOsInteressados();
-    }
-
-    @GetMapping(path="/{id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> buscarInteressadoPeloId(@PathVariable Integer id) {
-
-        return interessadoService.buscarInteressadoPeloId(id);
-    }
-
-    @GetMapping(path="/identificacao/{nuIdentificacao}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> buscarInteressadoPeloNumeroDeIdentificacao(@PathVariable String nuIdentificacao) {
-
-        return interessadoService.buscarInteressadoPeloNumeroDeIdentificacao(nuIdentificacao);
     }
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
