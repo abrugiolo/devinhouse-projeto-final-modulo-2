@@ -106,6 +106,14 @@ public class ProcessoService {
 		return new ResponseEntity<>("Processo criado com sucesso.", HttpStatus.OK);
 	}
 
+	/*
+	 * 1 - Não poderá ser cadastrado um novo processo com um id já existente; ok 
+	 * 2 - Não poderá ser cadastrado um novo processo com uma chave de processo já existente; ok 
+	 * 3 - Não poderá ser cadastrado um novo processo com interessados inativos; 
+	 * 4 - Não poderá ser cadastrado um novo processo com assuntos inativos; 
+	 * 5 - Não poderá ser cadastrado um novo processo com interessados inexistentes no sistema; ok 
+	 * 6 - Não poderá ser cadastrado um novo processo com assuntos inexistentes no sistema;
+	 */
 	public ResponseEntity<?> atualizarProcesso(Integer id, ProcessoDtoInput processoDto) {
 		Processo processo = processoRepository.findById(id).get();
 		
@@ -122,7 +130,7 @@ public class ProcessoService {
 			processo.setDescricao(processoDto.getDescricao());
 		}
 		if(processoDto.getCdAssunto() != null) {
-			processo.setDescricao(processoDto.getDescricao());
+			processo.setCdAssunto(processoDto.getCdAssunto());
 		}
 		processo.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(
 				processo.getSgOrgaoSetor(), processo.getNuProcesso(), processo.getNuAno()));
