@@ -4,12 +4,17 @@ import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
 import br.com.devinhouse.projetofinalmodulo2.repository.InteressadoRepository;
+import br.com.devinhouse.projetofinalmodulo2.utils.ConversorLocalDateParaString;
+import br.com.devinhouse.projetofinalmodulo2.utils.ConversorStringParaLocalDate;
+import br.com.devinhouse.projetofinalmodulo2.utils.ValidacaoCampos;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,10 +30,12 @@ public class InteressadoService {
     private ModelMapper modelMapper;
 
     private Interessado converteParaInteressado(InteressadoDtoInput interessadoDtoInput) {
+        modelMapper.addConverter(new ConversorStringParaLocalDate());
         return modelMapper.map(interessadoDtoInput, Interessado.class);
     }
 
     private InteressadoDtoOutput converteParaDto(Interessado interessado) {
+        modelMapper.addConverter(new ConversorLocalDateParaString());
         return modelMapper.map(interessado, InteressadoDtoOutput.class);
     }
 
@@ -36,7 +43,7 @@ public class InteressadoService {
         List<Interessado> listaInteressados = interessadoRepository.findAll();
 
         if (listaInteressados.isEmpty()) {
-            return new ResponseEntity<>("Não existem interessados cadastrados", OK);
+            return new ResponseEntity<>("Não existem interessados cadastrados.", OK);
         }
 
         List<InteressadoDtoOutput> listaInteressadoDtoOutput = listaInteressados.stream().map(this::converteParaDto).collect(Collectors.toList());
@@ -48,7 +55,7 @@ public class InteressadoService {
         Interessado interessado = interessadoRepository.findById(id).orElse(null);
 
         if (interessado == null) {
-            return new ResponseEntity<>(String.format("Interessado não encontrado (id = %d)", id), NOT_FOUND);
+            return new ResponseEntity<>(String.format("Nenhum interessado encontrado com id '%d'.", id), NOT_FOUND);
         }
 
         return new ResponseEntity<>(converteParaDto(interessado), OK);
@@ -58,7 +65,7 @@ public class InteressadoService {
         Interessado interessado = interessadoRepository.findByNuIdentificacao(nuIdentificacao).orElse(null);
 
         if (interessado == null) {
-            return new ResponseEntity<>(String.format("Interessado não encontrado (nuIdentificacao = '%s')", nuIdentificacao), NOT_FOUND);
+            return new ResponseEntity<>(String.format("Nenhum interessado encontrado com número de identificação '%s'.", nuIdentificacao), NOT_FOUND);
         }
 
         return new ResponseEntity<>(converteParaDto(interessado), OK);
@@ -66,12 +73,20 @@ public class InteressadoService {
 
     public ResponseEntity<?> cadastrarInteressado(InteressadoDtoInput interessadoDtoInput) {
 
-        if (interessadoDtoInput.getNmInteressado() == null || interessadoDtoInput.getNuIdentificacao() == null || interessadoDtoInput.getDtNascimento() == null || interessadoDtoInput.getFlAtivo() == null) {
+        if (!ValidacaoCampos.validarCamposPreenchidos(interessadoDtoInput)) {
             return new ResponseEntity<>("Todos os campos devem ser preenchidos.", HttpStatus.BAD_REQUEST);
         }
 
+        if (!ValidacaoCampos.validarData(interessadoDtoInput.getDtNascimento())) {
+            return new ResponseEntity<>(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", interessadoDtoInput.getDtNascimento()), BAD_REQUEST);
+        }
+
+        if (!ValidacaoCampos.validarFlAtivo(interessadoDtoInput.getFlAtivo())) {
+            return new ResponseEntity<>("Campo 'flAtivo' deve ser igual a 's' ou 'n'.", BAD_REQUEST);
+        }
+
         if (interessadoRepository.existsByNuIdentificacao(interessadoDtoInput.getNuIdentificacao())) {
-            return new ResponseEntity<>(String.format("Número de Identificação já existe no sistema (nuIdentificacao = '%s')", interessadoDtoInput.getNuIdentificacao()), CONFLICT);
+            return new ResponseEntity<>(String.format("Já existe um cadastro com o número de identificação '%s'.", interessadoDtoInput.getNuIdentificacao()), CONFLICT);
         }
 
         // TODO: verificar validade do numero de identificacao
@@ -79,7 +94,6 @@ public class InteressadoService {
         Interessado interessado = converteParaInteressado(interessadoDtoInput);
         interessadoRepository.save(interessado);
 
-        return new ResponseEntity<>("Interessado cadastrado com sucesso", OK);
+        return new ResponseEntity<>("Interessado cadastrado com sucesso.", OK);
     }
-
 }

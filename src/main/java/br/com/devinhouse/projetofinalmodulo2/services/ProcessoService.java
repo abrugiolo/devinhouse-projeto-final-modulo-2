@@ -1,11 +1,11 @@
 package br.com.devinhouse.projetofinalmodulo2.services;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
 import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
+import br.com.devinhouse.projetofinalmodulo2.utils.ValidacaoCampos;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,11 +45,11 @@ public class ProcessoService {
 
 	public ResponseEntity<?> buscarProcessosPorInteressado(Integer idInteressado) {
 		if (!interessadoRepository.findById(idInteressado).isPresent()) {
-			return new ResponseEntity<>("Interessado não encontrado.", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("Nenhum processo encontrado para o interessado informado.", HttpStatus.BAD_REQUEST);
 		}
 		Interessado interessado = interessadoRepository.findById(idInteressado).get();
 		if (interessado.getFlAtivo().equals('n')) {
-			return new ResponseEntity<>("Interessado inativo", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("Interessado inativo.", HttpStatus.BAD_REQUEST);
 
 		}
 		List<Processo> listaProcessos = processoRepository.findBycdInteressado(interessado);
@@ -71,7 +71,7 @@ public class ProcessoService {
 
 	public ResponseEntity<?> buscarProcessoPeloId(Integer id) {
 		if (!processoRepository.findById(id).isPresent()) {
-			return new ResponseEntity<>("Processo não encontrado.", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(String.format("Nenhum processo encontrado com id '%d'.", id), HttpStatus.BAD_REQUEST);
 		}
 		return ResponseEntity.ok(converteParaDto(processoRepository.findById(id).get()));
 	}
@@ -79,8 +79,9 @@ public class ProcessoService {
 	public ResponseEntity<?> buscarProcessoPeloNumeroProcesso(Integer nuProcesso) {
 		List<Processo> listaProcessos = processoRepository.findByNuProcesso(nuProcesso).orElse(null);
 
-		if (listaProcessos == null) {
-			return new ResponseEntity<>("Nenhum processo encontrado.", HttpStatus.BAD_REQUEST);
+		// TODO: corrigido aqui: if (listaProcessos == null) {
+		if (listaProcessos == null || listaProcessos.size() == 0) {
+			return new ResponseEntity<>(String.format("Nenhum processo encontrado com número '%d'.", nuProcesso), HttpStatus.BAD_REQUEST);
 		}
 
 		List<ProcessoDtoOutput> listaProcessoDto = listaProcessos.stream().map(this::converteParaDto).collect(Collectors.toList());
@@ -97,15 +98,16 @@ public class ProcessoService {
 	 * 6 - Não poderá ser cadastrado um novo processo com assuntos inexistentes no sistema;
 	 */
 	public ResponseEntity<?> cadastrarProcesso(ProcessoDtoInput processoDto) {
-		if (processoDto.getSgOrgaoSetor() == null || processoDto.getNuProcesso() == null || processoDto.getNuAno() == null || processoDto.getDescricao() == null || processoDto.getCdAssunto() == null || processoDto.getCdInteressado() == null) {
+		//if (processoDto.getSgOrgaoSetor() == null || processoDto.getNuProcesso() == null || processoDto.getNuAno() == null || processoDto.getDescricao() == null || processoDto.getCdAssunto() == null || processoDto.getCdInteressado() == null) {
+		if (!ValidacaoCampos.validarCamposPreenchidos(processoDto)) {
 			return new ResponseEntity<>("Todos os campos devem estar preenchidos.", HttpStatus.BAD_REQUEST);
 		}
 
 		processoDto.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(processoDto.getSgOrgaoSetor(),
 				processoDto.getNuProcesso(), processoDto.getNuAno()));
 
-		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) {
-			return new ResponseEntity<>("Chave do processo já existe no sistema.", HttpStatus.CONFLICT);
+		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) { // TODO: confirmar msg aqui
+			return new ResponseEntity<>(String.format("Já existe um processo cadastrado com a chave '%s'.", processoDto.getChaveProcesso()), HttpStatus.CONFLICT);
 		}
 
 		// TODO: codigo duplicado
@@ -129,7 +131,7 @@ public class ProcessoService {
 		}
 
 		if (!interessadoRepository.findById(processoDto.getCdInteressado().getId()).isPresent()) {
-			return new ResponseEntity<>("Interessado não encontrado.", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("Não foi possível cadastrar o processo: Interessado não encontrado.", HttpStatus.BAD_REQUEST);
 		}
 		Processo processo = converteParaProcesso(processoDto);
 		processoRepository.save(processo);
