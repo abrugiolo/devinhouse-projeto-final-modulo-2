@@ -76,6 +76,6 @@ public class AssuntoService {
         Assunto assunto = converteParaAssunto(assuntoDtoInput);
         assuntoRepository.save(assunto);
 
-        return new ResponseEntity<>("Assunto cadastrado com sucesso.", OK);
+        return new ResponseEntity<>("Assunto cadastrado com sucesso.", CREATED);
     }
 }
