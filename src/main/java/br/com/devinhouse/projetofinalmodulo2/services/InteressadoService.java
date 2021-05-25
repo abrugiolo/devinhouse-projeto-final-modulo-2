@@ -96,7 +96,7 @@ public class InteressadoService {
         }
         
         if (!validarNuIdentificacao(interessadoDtoInput.getNuIdentificacao())) {
-        	return new ResponseEntity<>("Número de identificação deve ter 11 dígitos.", BAD_REQUEST);
+        	return new ResponseEntity<>("Número de identificação deve ter exatamente 11 dígitos.", BAD_REQUEST);
         }
         
         if (interessadoRepository.existsByNuIdentificacao(interessadoDtoInput.getNuIdentificacao())) {
@@ -104,11 +104,9 @@ public class InteressadoService {
             		interessadoDtoInput.getNuIdentificacao()), CONFLICT);
         }
 
-        // TODO: verificar validade do numero de identificacao
-        
         Interessado interessado = converteParaInteressado(interessadoDtoInput);
         interessadoRepository.save(interessado);
 
-        return new ResponseEntity<>("Interessado cadastrado com sucesso.", OK);
+        return new ResponseEntity<>("Interessado cadastrado com sucesso.", CREATED);
     }
 }
