@@ -16,18 +16,18 @@ public class ProcessoController {
 	@Autowired
 	private ProcessoService processoService;
 	
-	@GetMapping(produces = APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> pesquisarProcesso(@RequestParam(name = "id-interessado", required = false) Integer idInteressado,
-												@RequestParam(name = "id-processo", required = false) Integer idProcesso,
-												@RequestParam(name = "nu-processo", required = false) Integer nuProcesso) {
-		if (idInteressado != null) {
-			return processoService.buscarProcessosPorInteressado(idInteressado);
-		}
-		if (idProcesso != null) {
-			return processoService.buscarProcessoPeloId(idProcesso);
+	@GetMapping(path = {"", "/{id}"}, produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> pesquisarProcesso(@PathVariable(required = false) Integer id,
+											   @RequestParam(name = "nu_processo", required = false) Integer nuProcesso,
+											   @RequestParam(name = "id_interessado", required = false) Integer idInteressado) {
+		if (id != null) {
+			return processoService.buscarProcessoPeloId(id);
 		}
 		if (nuProcesso != null) {
 			return processoService.buscarProcessoPeloNumeroProcesso(nuProcesso);
+		}
+		if (idInteressado != null) {
+			return processoService.buscarProcessosPorInteressado(idInteressado);
 		}
 		return processoService.buscarTodosOsProcessos();
 	}

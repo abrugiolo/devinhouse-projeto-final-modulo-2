@@ -1,14 +1,14 @@
 package br.com.devinhouse.projetofinalmodulo2.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Column;
-
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class AssuntoDtoInput {
     private String descricao;
     private String dtCadastro;

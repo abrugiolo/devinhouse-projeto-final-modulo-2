@@ -15,8 +15,8 @@ public class AssuntoController {
     @Autowired
     private AssuntoService assuntoService;
 
-    @GetMapping(produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> pesquisarAssunto(@RequestParam(name = "id", required = false) Integer id) {
+    @GetMapping(path = {"", "/{id}"}, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> pesquisarAssunto(@PathVariable(required = false) Integer id) {
         if (id != null) return assuntoService.buscarAssuntoPeloId(id);
 
         return assuntoService.buscarTodosOsAssuntos();
