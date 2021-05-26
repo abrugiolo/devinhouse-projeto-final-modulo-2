@@ -1,14 +1,9 @@
 package br.com.devinhouse.projetofinalmodulo2.services;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
+import br.com.devinhouse.projetofinalmodulo2.exceptions.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +19,8 @@ import br.com.devinhouse.projetofinalmodulo2.repository.InteressadoRepository;
 import br.com.devinhouse.projetofinalmodulo2.repository.ProcessoRepository;
 import br.com.devinhouse.projetofinalmodulo2.utils.MascaraChaveProcesso;
 import br.com.devinhouse.projetofinalmodulo2.utils.ValidacaoCampos;
+
+import static org.springframework.http.HttpStatus.*;
 
 @Service
 public class ProcessoService {
@@ -47,29 +44,7 @@ public class ProcessoService {
 	private Processo converteParaProcesso(ProcessoDtoInput processoDto) {
 		return modelMapper.map(processoDto, Processo.class);
 	}
-	
-	private boolean validadorInteressado(Interessado interessado){
-		if (interessado != null) {
-			interessado = interessadoRepository.findById(interessado.getId()).orElse(null);
 
-			if (interessado == null || interessado.getFlAtivo().equals('n')) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	private boolean validadorAssunto(Assunto assunto) {
-		if (assunto != null) {
-			assunto = assuntoRepository.findById(assunto.getId()).orElse(null);
-
-			if (assunto == null || assunto.getFlAtivo().equals('n')) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	private Integer retornarUltimoNuProcesso() {
 		List<Processo> listaProcesso = processoRepository.findAll();
 		if (listaProcesso.size() == 0) {
@@ -77,16 +52,17 @@ public class ProcessoService {
 		}
 		return listaProcesso.get(listaProcesso.size()-1).getNuProcesso() + 1;
 	}
-	
+
 	public ResponseEntity<?> buscarProcessosPorInteressado(Integer idInteressado) {
-		if (!interessadoRepository.findById(idInteressado).isPresent()) {
-			return new ResponseEntity<>("Nenhum processo encontrado para o interessado informado.", BAD_REQUEST);
+		if (interessadoRepository.findById(idInteressado).isEmpty()) {
+			throw new NotFoundException("Nenhum processo encontrado para o interessado informado.");
 		}
 		
 		Interessado interessado = interessadoRepository.findById(idInteressado).get();
 		
 		if (interessado.getFlAtivo().equals('n')) {
-			return new ResponseEntity<>("Interessado inativo.", BAD_REQUEST);
+
+			throw new InteressadoInativoException("Não foi possível efetuar a busca: Interessado inativo.");
 		}
 		
 		List<Processo> listaProcessos = processoRepository.findByCdInteressado(interessado);
@@ -107,19 +83,17 @@ public class ProcessoService {
 	}
 
 	public ResponseEntity<?> buscarProcessoPeloId(Integer id) {
-		if (!processoRepository.findById(id).isPresent()) {
-			return new ResponseEntity<>(String.format("Nenhum processo encontrado com id '%d'.", id), 
-					BAD_REQUEST);
+		if (processoRepository.findById(id).isEmpty()) {
+			throw new NotFoundException(String.format("Nenhum processo encontrado com id '%d'.", id));
 		}
-		return ResponseEntity.ok(converteParaDto(processoRepository.findById(id).get()));
+		return new ResponseEntity<>(converteParaDto(processoRepository.findById(id).get()), OK);
 	}
 
 	public ResponseEntity<?> buscarProcessoPeloNumeroProcesso(Integer nuProcesso) {
 		Processo processo = processoRepository.findByNuProcesso(nuProcesso).orElse(null);
 
 		if (processo == null) {
-			return new ResponseEntity<>(String.format("Nenhum processo encontrado com número '%d'.", nuProcesso), 
-					BAD_REQUEST);
+      throw new NotFoundException(String.format("Nenhum processo encontrado com número '%d'.", nuProcesso));
 		}
 
 		ProcessoDtoOutput processoDto = converteParaDto(processo);
@@ -129,34 +103,27 @@ public class ProcessoService {
 
 	public ResponseEntity<?> cadastrarProcesso(ProcessoDtoInput processoDto) {
 		if (!ValidacaoCampos.validarCamposPreenchidos(processoDto)) {
-			return new ResponseEntity<>("Todos os campos devem estar preenchidos.", BAD_REQUEST);
+			throw new CampoVazioException("Todos os campos devem estar preenchidos.");
 		}
-		
+
 		processoDto.setNuProcesso(retornarUltimoNuProcesso());
 		processoDto.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(processoDto.getSgOrgaoSetor(),
 				processoDto.getNuProcesso(), processoDto.getNuAno()));
 
 		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) {
-			return new ResponseEntity<>(String.format("Já existe um processo cadastrado com a chave '%s'.", 
-					processoDto.getChaveProcesso()), CONFLICT);
+
+			throw new ChaveProcessoJaExisteException(String.format("Já existe um processo cadastrado com a chave '%s'.",
+					processoDto.getChaveProcesso()));
 		}
 
-		Interessado interessado = processoDto.getCdInteressado();
-		if (validadorInteressado(interessado)) {
-			return new ResponseEntity<>("Não foi possível cadastrar o processo: Interessado inativo ou inexistente.", 
-					BAD_REQUEST);
+		if (ValidacaoCampos.validadorInteressadoInativo(interessadoRepository, processoDto.getCdInteressado())) {
+			throw new InteressadoInativoException("Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
 		}
 
-		Assunto assunto = processoDto.getCdAssunto();
-		if (validadorAssunto(assunto)) {
-			return new ResponseEntity<>("Não foi possível cadastrar o processo: Assunto inativo ou inexistente.", 
-					BAD_REQUEST);
+		if (ValidacaoCampos.validadorAssuntoInativo(assuntoRepository, processoDto.getCdAssunto())) {
+			throw new AssuntoInativoException("Não foi possível cadastrar o processo: Assunto inativo ou inexistente.");
 		}
 
-		if (!interessadoRepository.findById(processoDto.getCdInteressado().getId()).isPresent()) {
-			return new ResponseEntity<>("Não foi possível cadastrar o processo: Interessado não encontrado.", 
-					BAD_REQUEST);
-		}
 		Processo processo = converteParaProcesso(processoDto);
 		processoRepository.save(processo);
 		return new ResponseEntity<>("Processo criado com sucesso.", CREATED);
@@ -164,7 +131,7 @@ public class ProcessoService {
 
 	public ResponseEntity<?> atualizarProcesso(Integer id, ProcessoDtoInput processoDto) {
 		Processo processo = processoRepository.findById(id).get();
-		
+
 		if (processoDto.getSgOrgaoSetor() != null) {
 			processo.setSgOrgaoSetor(processoDto.getSgOrgaoSetor());
 		}
@@ -185,30 +152,26 @@ public class ProcessoService {
 		}
 		processo.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(
 				processo.getSgOrgaoSetor(), processo.getNuProcesso(), processo.getNuAno()));
-		
+
 		if (processoRepository.existsByChaveProcesso(processo.getChaveProcesso())) {
-			return new ResponseEntity<>("Chave do processo já existe no sistema.", CONFLICT);
+			throw new ChaveProcessoJaExisteException("Chave do processo já existe no sistema.");
 		}
 
-		Interessado interessado = processo.getCdInteressado();
-		if (validadorInteressado(interessado)) {
-			return new ResponseEntity<>("Não foi possível atualizar o processo: Interessado inativo ou inexistente.", 
-					BAD_REQUEST);
+		if (ValidacaoCampos.validadorInteressadoInativo(interessadoRepository, processoDto.getCdInteressado())) {
+			throw new InteressadoInativoException("Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
 		}
 
-		Assunto assunto = processo.getCdAssunto();
-		if(validadorAssunto(assunto)) {
-			return new ResponseEntity<>("Não foi possível atualizar o processo: Assunto inativo ou inexistente.", 
-					BAD_REQUEST);
+		if (ValidacaoCampos.validadorAssuntoInativo(assuntoRepository, processoDto.getCdAssunto())) {
+			throw new AssuntoInativoException("Não foi possível cadastrar o processo: Assunto inativo ou inexistente.");
 		}
 
 		processoRepository.save(processo);
 		return new ResponseEntity<>("Processo atualizado com sucesso.", OK);
 	}
-	
+
 	public ResponseEntity<?> deletarProcesso(Integer idProcesso) {
 		if (!processoRepository.existsById(idProcesso)) {
-			return new ResponseEntity<>("Não foi possível excluir o processo: ID inválido.", NOT_FOUND);
+			throw new NotFoundException("Não foi possível excluir o processo: ID inválido.");
 		}
 
 		processoRepository.deleteById(idProcesso);

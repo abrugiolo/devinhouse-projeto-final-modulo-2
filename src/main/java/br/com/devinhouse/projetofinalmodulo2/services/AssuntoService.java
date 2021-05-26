@@ -3,6 +3,10 @@ package br.com.devinhouse.projetofinalmodulo2.services;
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.CampoVazioException;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.DataInvalidaException;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.FlAtivoInvalidoException;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.NotFoundException;
 import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
 import br.com.devinhouse.projetofinalmodulo2.utils.ConversorLocalDateParaString;
 import br.com.devinhouse.projetofinalmodulo2.utils.ConversorStringParaLocalDate;
@@ -52,7 +56,7 @@ public class AssuntoService {
         Assunto assunto = assuntoRepository.findById(id).orElse(null);
 
         if (assunto == null) {
-            return new ResponseEntity<>(String.format("Nenhum assunto encontrado com id '%d'.", id), NOT_FOUND);
+            throw new NotFoundException(String.format("Nenhum assunto encontrado com id '%d'.", id));
         }
 
         return new ResponseEntity<>(converteParaDto(assunto), OK);
@@ -61,21 +65,20 @@ public class AssuntoService {
     public ResponseEntity<?> cadastrarAssunto(AssuntoDtoInput assuntoDtoInput) {
 
         if (!ValidacaoCampos.validarCamposPreenchidos(assuntoDtoInput)) {
-            return new ResponseEntity<>("Todos os campos devem ser preenchidos.", BAD_REQUEST);
+            throw new CampoVazioException("Todos os campos devem ser preenchidos.");
         }
 
         if (!ValidacaoCampos.validarData(assuntoDtoInput.getDtCadastro())) {
-            return new ResponseEntity<>(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", 
-            		assuntoDtoInput.getDtCadastro()), BAD_REQUEST);
+            throw new DataInvalidaException(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", assuntoDtoInput.getDtCadastro()));
         }
 
         if (!ValidacaoCampos.validarFlAtivo(assuntoDtoInput.getFlAtivo())) {
-            return new ResponseEntity<>("Campo 'flAtivo' deve ser igual a 's' ou 'n'.", BAD_REQUEST);
+            throw new FlAtivoInvalidoException("Campo 'flAtivo' deve ser igual a 's' ou 'n'.");
         }
 
         Assunto assunto = converteParaAssunto(assuntoDtoInput);
         assuntoRepository.save(assunto);
 
-        return new ResponseEntity<>("Assunto cadastrado com sucesso.", OK);
+        return new ResponseEntity<>("Assunto cadastrado com sucesso.", CREATED);
     }
 }

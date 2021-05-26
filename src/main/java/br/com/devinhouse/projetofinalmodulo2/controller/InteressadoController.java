@@ -15,13 +15,14 @@ public class InteressadoController {
     @Autowired
     private InteressadoService interessadoService;
 
-    @GetMapping(produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> pesquisarInteressado(@RequestParam(name = "id", required = false) Integer id, @RequestParam(name = "identificacao", required = false) String identificacao) {
+    @GetMapping(path = {"", "/{id}"}, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> pesquisarInteressado(@PathVariable(required = false) Integer id,
+                                                  @RequestParam(name = "nu_identificacao", required = false) String nuIdentificacao) {
         if (id != null) {
             return interessadoService.buscarInteressadoPeloId(id);
         }
-        if (identificacao != null) {
-            return interessadoService.buscarInteressadoPeloNumeroDeIdentificacao(identificacao);
+        if (nuIdentificacao != null) {
+            return interessadoService.buscarInteressadoPeloNumeroDeIdentificacao(nuIdentificacao);
         }
         return interessadoService.buscarTodosOsInteressados();
     }

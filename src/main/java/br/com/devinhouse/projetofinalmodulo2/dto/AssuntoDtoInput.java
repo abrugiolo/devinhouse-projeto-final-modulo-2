@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class AssuntoDtoInput {
+
     private String descricao;
     private String dtCadastro;
     private Character flAtivo;

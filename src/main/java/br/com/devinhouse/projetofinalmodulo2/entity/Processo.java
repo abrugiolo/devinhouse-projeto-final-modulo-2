@@ -4,21 +4,21 @@ import javax.persistence.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
 public class Processo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Integer id;
     
     @Column(nullable = false, length = 4)
     private String sgOrgaoSetor;
-
 
     @Column(nullable = false)
     private Integer nuProcesso;
@@ -39,6 +39,4 @@ public class Processo {
     @ManyToOne
     @JoinColumn(name = "id_interessado")
     private Interessado cdInteressado;
-
-    public Processo() {}
 }

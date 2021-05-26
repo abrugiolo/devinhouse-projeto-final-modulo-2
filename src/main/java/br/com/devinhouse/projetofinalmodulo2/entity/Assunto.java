@@ -27,4 +27,3 @@ public class Assunto {
     @Column(nullable = false)
     private Character flAtivo;
 }
-

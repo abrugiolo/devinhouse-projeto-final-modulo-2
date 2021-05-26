@@ -3,6 +3,7 @@ package br.com.devinhouse.projetofinalmodulo2.services;
 import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.*;
 import br.com.devinhouse.projetofinalmodulo2.repository.InteressadoRepository;
 import br.com.devinhouse.projetofinalmodulo2.utils.ConversorLocalDateParaString;
 import br.com.devinhouse.projetofinalmodulo2.utils.ConversorStringParaLocalDate;
@@ -61,7 +62,7 @@ public class InteressadoService {
         Interessado interessado = interessadoRepository.findById(id).orElse(null);
 
         if (interessado == null) {
-            return new ResponseEntity<>(String.format("Nenhum interessado encontrado com id '%d'.", id), NOT_FOUND);
+            throw new NotFoundException(String.format("Nenhum interessado encontrado com id '%d'.", id));
         }
 
         return new ResponseEntity<>(converteParaDto(interessado), OK);
@@ -71,8 +72,8 @@ public class InteressadoService {
         Interessado interessado = interessadoRepository.findByNuIdentificacao(nuIdentificacao).orElse(null);
 
         if (interessado == null) {
-            return new ResponseEntity<>(String.format("Nenhum interessado encontrado com número de identificação '%s'.", 
-            		nuIdentificacao), NOT_FOUND);
+            throw new NotFoundException(String.format("Nenhum interessado encontrado com número de identificação '%s'.",
+            		nuIdentificacao));
         }
 
         return new ResponseEntity<>(converteParaDto(interessado), OK);
@@ -81,32 +82,30 @@ public class InteressadoService {
     public ResponseEntity<?> cadastrarInteressado(InteressadoDtoInput interessadoDtoInput) {
 
         if (!ValidacaoCampos.validarCamposPreenchidos(interessadoDtoInput)) {
-            return new ResponseEntity<>("Todos os campos devem ser preenchidos.", HttpStatus.BAD_REQUEST);
+            throw new CampoVazioException("Todos os campos devem ser preenchidos.");
         }
 
         if (!ValidacaoCampos.validarData(interessadoDtoInput.getDtNascimento())) {
-            return new ResponseEntity<>(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", 
-            		interessadoDtoInput.getDtNascimento()), BAD_REQUEST);
+            throw new DataInvalidaException(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.",
+            		interessadoDtoInput.getDtNascimento()));
         }
 
         if (!ValidacaoCampos.validarFlAtivo(interessadoDtoInput.getFlAtivo())) {
-            return new ResponseEntity<>("Campo 'flAtivo' deve ser igual a 's' ou 'n'.", BAD_REQUEST);
+            throw new FlAtivoInvalidoException("Campo 'flAtivo' deve ser igual a 's' ou 'n'.");
         }
         
         if (!validarNuIdentificacao(interessadoDtoInput.getNuIdentificacao())) {
-        	return new ResponseEntity<>("Número de identificação deve ter 11 dígitos.", BAD_REQUEST);
+        	throw new NuIdentificacaoInvalidoException("Número de identificação deve ter exatamente 11 dígitos.");
         }
         
         if (interessadoRepository.existsByNuIdentificacao(interessadoDtoInput.getNuIdentificacao())) {
-            return new ResponseEntity<>(String.format("Já existe um cadastro com o número de identificação '%s'.", 
-            		interessadoDtoInput.getNuIdentificacao()), CONFLICT);
+            throw new NuIdentificacaoJaExisteException(String.format("Já existe um cadastro com o número de identificação '%s'.",
+            		interessadoDtoInput.getNuIdentificacao()));
         }
 
-        // TODO: verificar validade do numero de identificacao
-        
         Interessado interessado = converteParaInteressado(interessadoDtoInput);
         interessadoRepository.save(interessado);
 
-        return new ResponseEntity<>("Interessado cadastrado com sucesso.", OK);
+        return new ResponseEntity<>("Interessado cadastrado com sucesso.", CREATED);
     }
 }

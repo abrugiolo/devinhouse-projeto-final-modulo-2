@@ -15,11 +15,12 @@ public class ProcessoController {
 
 	@Autowired
 	private ProcessoService processoService;
-	
+
 	@GetMapping(path = {"", "/{id-processo}"}, produces = APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> pesquisarProcesso(@RequestParam(name = "id-interessado", required = false) Integer idInteressado,
-												@PathVariable(name = "id-processo", required = false) Integer idProcesso,
-												@RequestParam(name = "nu-processo", required = false) Integer nuProcesso) {
+											   @PathVariable(name = "id-processo", required = false) Integer idProcesso,
+											   @RequestParam(name = "nu-processo", required = false) Integer nuProcesso) {
+
 		if (idInteressado != null) {
 			return processoService.buscarProcessosPorInteressado(idInteressado);
 		}
@@ -36,13 +37,13 @@ public class ProcessoController {
 	public ResponseEntity<?> cadastrarProcesso(@RequestBody ProcessoDtoInput processo) {
 		return processoService.cadastrarProcesso(processo);
 	}
-	
+
 	@PutMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> atualizarCadastro(@PathVariable Integer id, @RequestBody ProcessoDtoInput processoDto) {
 		return processoService.atualizarProcesso(id, processoDto);
 	}
-	
-	@DeleteMapping(path = "/{id}") 
+
+	@DeleteMapping(path = "/{id}")
 	public ResponseEntity<?> deletarProcesso(@PathVariable Integer id) {
 		return processoService.deletarProcesso(id);
 	}
