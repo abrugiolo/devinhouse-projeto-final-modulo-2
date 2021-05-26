@@ -64,7 +64,12 @@ class InteressadoControllerTest {
     @Test
     public void deveRetornarInteressadoAoBuscarIdValido() throws Exception {
 
-        InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput(1, "fulano", "12345654321", "1950-01-01", 's');
+        InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput();
+        interessadoDto.setId(1);
+        interessadoDto.setNmInteressado("fulano");
+        interessadoDto.setNuIdentificacao("12345654321");
+        interessadoDto.setDtNascimento("1590-01-01");
+        interessadoDto.setFlAtivo('s');
 
         given(interessadoService.buscarInteressadoPeloId(1))
             .willReturn(new ResponseEntity(interessadoDto, OK));
@@ -77,21 +82,14 @@ class InteressadoControllerTest {
     }
 
     @Test
-    public void deveRetornarStatusNotFoundAoBuscarIdInvalido() throws Exception {
-
-        given(interessadoService.buscarInteressadoPeloId(100))
-            .willReturn(new ResponseEntity<>(NOT_FOUND));
-
-        mockMvc
-            .perform(get(INTERESSADO_URL_PATH + "/100"))
-            .andDo(print())
-            .andExpect(status().isNotFound());
-    }
-
-    @Test
     public void deveRetornarInteressadoAoBuscarNuIdentificacaoValido() throws Exception {
 
-        InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput(1, "fulano", "12345654321", "1950-01-01", 's');
+        InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput();
+        interessadoDto.setId(1);
+        interessadoDto.setNmInteressado("fulano");
+        interessadoDto.setNuIdentificacao("12345654321");
+        interessadoDto.setDtNascimento("1590-01-01");
+        interessadoDto.setFlAtivo('s');
 
         given(interessadoService.buscarInteressadoPeloNumeroDeIdentificacao("12345654321"))
             .willReturn(new ResponseEntity(interessadoDto, OK));
@@ -101,18 +99,6 @@ class InteressadoControllerTest {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().json(json.write(interessadoDto).getJson()));
-    }
-
-    @Test
-    public void deveRetornarStatusNotFoundAoBuscarNuIdentificacaoInvalido() throws Exception {
-
-        given(interessadoService.buscarInteressadoPeloNumeroDeIdentificacao("asdasd"))
-            .willReturn(new ResponseEntity<>(NOT_FOUND));
-
-        mockMvc
-            .perform(get(INTERESSADO_URL_PATH + "?nu_identificacao=asdasd"))
-            .andDo(print())
-            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -126,20 +112,6 @@ class InteressadoControllerTest {
                 .contentType(APPLICATION_JSON)
                 .content(json.write(new InteressadoDtoInput()).getJson()))
             .andExpect(status().isCreated());
-    }
-
-    @Test
-    public void deveRetornarStatusBadRequestAoCadastrarInteressadoInvalido() throws Exception {
-
-        given(interessadoService.cadastrarInteressado(any(InteressadoDtoInput.class)))
-                .willReturn(new ResponseEntity<>(BAD_REQUEST));
-
-        mockMvc
-            .perform(post(INTERESSADO_URL_PATH)
-                .contentType(APPLICATION_JSON)
-                .content(json.write(new InteressadoDtoInput()).getJson()))
-            .andDo(print())
-            .andExpect(status().isBadRequest());
     }
 
 }

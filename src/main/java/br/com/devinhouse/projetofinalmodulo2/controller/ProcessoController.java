@@ -15,19 +15,19 @@ public class ProcessoController {
 
 	@Autowired
 	private ProcessoService processoService;
-	
-	@GetMapping(path = {"", "/{id}"}, produces = APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> pesquisarProcesso(@PathVariable(required = false) Integer id,
-											   @RequestParam(name = "nu_processo", required = false) Integer nuProcesso,
-											   @RequestParam(name = "id_interessado", required = false) Integer idInteressado) {
-		if (id != null) {
-			return processoService.buscarProcessoPeloId(id);
+
+	@GetMapping(path = {"", "/{id-processo}"}, produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> pesquisarProcesso(@RequestParam(name = "id-interessado", required = false) Integer idInteressado,
+											   @PathVariable(name = "id-processo", required = false) Integer idProcesso,
+											   @RequestParam(name = "nu-processo", required = false) Integer nuProcesso) {
+		if (idInteressado != null) {
+			return processoService.buscarProcessosPorInteressado(idInteressado);
+		}
+		if (idProcesso != null) {
+			return processoService.buscarProcessoPeloId(idProcesso);
 		}
 		if (nuProcesso != null) {
 			return processoService.buscarProcessoPeloNumeroProcesso(nuProcesso);
-		}
-		if (idInteressado != null) {
-			return processoService.buscarProcessosPorInteressado(idInteressado);
 		}
 		return processoService.buscarTodosOsProcessos();
 	}
@@ -36,13 +36,13 @@ public class ProcessoController {
 	public ResponseEntity<?> cadastrarProcesso(@RequestBody ProcessoDtoInput processo) {
 		return processoService.cadastrarProcesso(processo);
 	}
-	
+
 	@PutMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> atualizarCadastro(@PathVariable Integer id, @RequestBody ProcessoDtoInput processoDto) {
 		return processoService.atualizarProcesso(id, processoDto);
 	}
-	
-	@DeleteMapping(path = "/{id}") 
+
+	@DeleteMapping(path = "/{id}")
 	public ResponseEntity<?> deletarProcesso(@PathVariable Integer id) {
 		return processoService.deletarProcesso(id);
 	}

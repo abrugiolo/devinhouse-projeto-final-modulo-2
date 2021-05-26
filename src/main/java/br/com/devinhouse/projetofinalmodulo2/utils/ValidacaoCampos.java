@@ -3,6 +3,10 @@ package br.com.devinhouse.projetofinalmodulo2.utils;
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
+import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
+import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
+import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
+import br.com.devinhouse.projetofinalmodulo2.repository.InteressadoRepository;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -40,4 +44,27 @@ public class ValidacaoCampos {
 
         return false;
     }
+
+    public static boolean validadorInteressadoInativo(InteressadoRepository interessadoRepository, Interessado interessado){
+        if (interessado != null) {
+            interessado = interessadoRepository.findById(interessado.getId()).orElse(null);
+
+            if (interessado == null || interessado.getFlAtivo().equals('n')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean validadorAssuntoInativo(AssuntoRepository assuntoRepository, Assunto assunto) {
+        if (assunto != null) {
+            assunto = assuntoRepository.findById(assunto.getId()).orElse(null);
+
+            if (assunto == null || assunto.getFlAtivo().equals('n')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

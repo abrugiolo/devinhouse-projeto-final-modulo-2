@@ -3,6 +3,10 @@ package br.com.devinhouse.projetofinalmodulo2.services;
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.CampoVazioException;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.DataInvalidaException;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.FlAtivoInvalidoException;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.NotFoundException;
 import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,9 +24,8 @@ import java.util.Optional;
 
 import static java.util.Collections.EMPTY_LIST;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.*;
@@ -44,26 +47,27 @@ class AssuntoServiceTest {
         // given
         List<Assunto> listaVazia = Collections.emptyList();
 
-        // when
+        //when
         when(repository.findAll()).thenReturn(listaVazia);
 
         // then
         ResponseEntity<?> responseEntity = service.buscarTodosOsAssuntos();
+        String responseBody = (String) responseEntity.getBody();
 
         assertAll(
-            () -> assertEquals(OK, responseEntity.getStatusCode()),
-            () -> verify(repository, times(1)).findAll()
+                () -> assertEquals(OK, responseEntity.getStatusCode()),
+                () -> assertEquals("Não existem assuntos cadastrados.", responseBody),
+                () -> verify(repository, times(1)).findAll()
         );
     }
 
     @Test
-    public void deveRetornarListaDeAssuntosAoBuscarTodosOsAssuntos() {
+    public void deveRetornarListaAoBuscarTodosOsAssuntos() {
         // given
-        Assunto assunto1 = new Assunto(1, "Assunto 1", LocalDate.parse("2020-01-01"), 's');
-        Assunto assunto2 = new Assunto(2, "Assunto 2", LocalDate.parse("2020-01-01"), 's');
-
-        AssuntoDtoOutput assuntoDto1 = new AssuntoDtoOutput(assunto1.getId(), assunto1.getDescricao(), assunto1.getDtCadastro().toString(), assunto1.getFlAtivo());
-        AssuntoDtoOutput assuntoDto2 = new AssuntoDtoOutput(assunto2.getId(), assunto2.getDescricao(), assunto2.getDtCadastro().toString(), assunto2.getFlAtivo());
+        Assunto assunto1 = new Assunto();
+        Assunto assunto2 = new Assunto();
+        AssuntoDtoOutput assuntoDto1 = new AssuntoDtoOutput();
+        AssuntoDtoOutput assuntoDto2 = new AssuntoDtoOutput();
 
         //when
         when(modelMapper.map(assunto1, AssuntoDtoOutput.class)).thenReturn(assuntoDto1);
@@ -87,8 +91,16 @@ class AssuntoServiceTest {
     @Test
     public void deveRetornarAssuntoAoBuscarIdValido() {
         // given
-        Assunto assunto = new Assunto(1, "descricao", LocalDate.parse("2020-01-01"), 's');
-        AssuntoDtoOutput assuntoDto = new AssuntoDtoOutput(assunto.getId(), assunto.getDescricao(), assunto.getDtCadastro().toString(), assunto.getFlAtivo());
+        Assunto assunto = new Assunto();
+        assunto.setId(1);
+        assunto.setDescricao("descricao");
+        assunto.setDtCadastro(LocalDate.now());
+        assunto.setFlAtivo('s');
+        AssuntoDtoOutput assuntoDto = new AssuntoDtoOutput();
+        assuntoDto.setId(assunto.getId());
+        assuntoDto.setDescricao(assunto.getDescricao());
+        assuntoDto.setDtCadastro(assunto.getDtCadastro().toString());
+        assuntoDto.setFlAtivo(assunto.getFlAtivo());
 
         // when
         when(modelMapper.map(assunto, AssuntoDtoOutput.class)).thenReturn(assuntoDto);
@@ -106,27 +118,29 @@ class AssuntoServiceTest {
     }
 
     @Test
-    public void deveRetornarStatusNotFoundAoBuscarIdInvalido() {
-        // given
-        Optional<Assunto> assunto = Optional.empty();
+    public void deveLancarExcecaoAoBuscarIdInvalido() {
+        assertThrows(NotFoundException.class, () -> {
+            // given
+            Optional<Assunto> assunto = Optional.empty();
 
-        // when
-        when(repository.findById(100)).thenReturn(assunto);
+            // when
+            when(repository.findById(100)).thenReturn(assunto);
 
-        // then
-        ResponseEntity<?> responseEntity = service.buscarAssuntoPeloId(100);
-
-        assertAll(
-                () -> assertEquals(NOT_FOUND, responseEntity.getStatusCode()),
-                () -> verify(repository, times(1)).findById(100)
-        );
+            // then
+            service.buscarAssuntoPeloId(100);
+        });
     }
 
     @Test
     public void deveRetornarStatusCreatedAoCadastrarAssuntoValido() {
         // given
-        AssuntoDtoInput assuntoDto = new AssuntoDtoInput("descricao", "2020-01-01", 's');
-        Assunto assunto = new Assunto(1, assuntoDto.getDescricao(), LocalDate.parse(assuntoDto.getDtCadastro()), assuntoDto.getFlAtivo());
+        AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
+        assuntoDto.setDescricao("descricao");
+        assuntoDto.setDtCadastro("2020-01-01");
+        assuntoDto.setFlAtivo('s');
+
+        Assunto assunto = new Assunto(1, assuntoDto.getDescricao(),
+                LocalDate.parse(assuntoDto.getDtCadastro()), assuntoDto.getFlAtivo());
 
         // when
         when(modelMapper.map(assuntoDto, Assunto.class)).thenReturn(assunto);
@@ -142,47 +156,44 @@ class AssuntoServiceTest {
     }
 
     @Test
-    public void deveRetornarStatusBadRequestAoCadastrarAssuntoIncompleto() {
-        // given
-        AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
-        assuntoDto.setDescricao("descricao");
-        assuntoDto.setFlAtivo('s');
+    public void deveLancarExcecaoAoCadastrarAssuntoIncompleto() {
+        assertThrows(CampoVazioException.class, () -> {
+            // given
+            AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
+            assuntoDto.setDescricao("descricao");
+            assuntoDto.setFlAtivo('s');
 
-        // then
-        ResponseEntity<?> responseEntity = service.cadastrarAssunto(assuntoDto);
-
-        assertAll(
-                () -> assertEquals(BAD_REQUEST, responseEntity.getStatusCode()),
-                () -> verify(repository, times(0)).save(any(Assunto.class))
-        );
+            // when/then
+            service.cadastrarAssunto(assuntoDto);
+        });
     }
 
     @Test
-    public void deveRetornarStatusBadRequestAoCadastrarAssuntoComDataInvalida() {
-        // given
-        AssuntoDtoInput assuntoDto = new AssuntoDtoInput("descricao", "2020-02-31", 's');
+    public void deveLancarExcecaoAoCadastrarAssuntoComDataInvalida() {
+        assertThrows(DataInvalidaException.class, () -> {
+            // given
+            AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
+            assuntoDto.setDescricao("descricao");
+            assuntoDto.setDtCadastro("2020-02-31");
+            assuntoDto.setFlAtivo('s');
 
-        // then
-        ResponseEntity<?> responseEntity = service.cadastrarAssunto(assuntoDto);
-
-        assertAll(
-                () -> assertEquals(BAD_REQUEST, responseEntity.getStatusCode()),
-                () -> verify(repository, times(0)).save(any(Assunto.class))
-        );
+            // when/then
+            service.cadastrarAssunto(assuntoDto);
+        });
     }
 
     @Test
-    public void deveRetornarStatusBadRequestAoCadastrarAssuntoComFlAtivoInvalido() {
-        // given
-        AssuntoDtoInput assuntoDto = new AssuntoDtoInput("descricao", "2020-01-01", 'y');
+    public void deveLancarExcecaoAoCadastrarAssuntoComFlAtivoInvalido() {
+        assertThrows(FlAtivoInvalidoException.class, () -> {
+            // given
+            AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
+            assuntoDto.setDescricao("descricao");
+            assuntoDto.setDtCadastro("2020-01-01");
+            assuntoDto.setFlAtivo('y');
 
-        // then
-        ResponseEntity<?> responseEntity = service.cadastrarAssunto(assuntoDto);
-
-        assertAll(
-                () -> assertEquals(BAD_REQUEST, responseEntity.getStatusCode()),
-                () -> verify(repository, times(0)).save(any(Assunto.class))
-        );
+            // when/then
+            service.cadastrarAssunto(assuntoDto);
+        });
     }
 
 }

@@ -2,6 +2,8 @@ package br.com.devinhouse.projetofinalmodulo2.controller;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoOutput;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.DefaultExceptionHandler;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.NotFoundException;
 import br.com.devinhouse.projetofinalmodulo2.services.AssuntoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,17 +12,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.*;
@@ -51,21 +59,21 @@ class AssuntoControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(assuntoController).build();
     }
 
+//    @Test
+//    public void deveRetornarListaVaziaAoBuscarTodosOsAssuntos() throws Exception {
+//
+//        given(assuntoService.buscarTodosOsAssuntos())
+//            .willReturn(new ResponseEntity(Collections.emptyList(), OK));
+//
+//        mockMvc
+//            .perform(get(ASSUNTO_URL_PATH))
+//            .andDo(print())
+//            .andExpect(status().isOk())
+//            .andExpect(content().string("[]"));
+//    }
+
     @Test
-    public void deveRetornarListaVaziaAoBuscarTodosOsAssuntos() throws Exception {
-
-        given(assuntoService.buscarTodosOsAssuntos())
-            .willReturn(new ResponseEntity(Collections.emptyList(), OK));
-
-        mockMvc
-            .perform(get(ASSUNTO_URL_PATH))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(content().string("[]"));
-    }
-
-    @Test
-    public void deveRetornarListaDeAssuntosAoBuscarTodosOsAssuntos() throws Exception {
+    public void deveRetornarListaAoBuscarTodosOsAssuntos() throws Exception {
 
         List<AssuntoDtoOutput> listaAssuntos = Arrays.asList(new AssuntoDtoOutput(), new AssuntoDtoOutput(), new AssuntoDtoOutput());
         listaAssuntos.get(0).setId(1);
@@ -79,15 +87,19 @@ class AssuntoControllerTest {
             .perform(get(ASSUNTO_URL_PATH))
             .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[*].id", containsInAnyOrder(1, 2, 3)));
+            .andExpect(jsonPath("$[*].id", contains(1, 2, 3)));
     }
 
     @Test
     public void deveRetornarAssuntoAoBuscarIdValido() throws Exception {
 
-        AssuntoDtoOutput assuntoDto = new AssuntoDtoOutput(1, "descricao", "2021-02-28", 's');
+        AssuntoDtoOutput assuntoDto = new AssuntoDtoOutput();
+        assuntoDto.setId(1);
+        assuntoDto.setDescricao("descricao");
+        assuntoDto.setDtCadastro("2020-01-01");
+        assuntoDto.setFlAtivo('s');
 
-        given(assuntoService.buscarAssuntoPeloId(anyInt()))
+        given(assuntoService.buscarAssuntoPeloId(1))
             .willReturn(new ResponseEntity(assuntoDto, OK));
 
         mockMvc
@@ -98,41 +110,17 @@ class AssuntoControllerTest {
     }
 
     @Test
-    public void deveRetornarStatusNotFoundAoBuscarIdInvalido() throws Exception {
-
-        given(assuntoService.buscarAssuntoPeloId(100))
-            .willReturn(new ResponseEntity<>(NOT_FOUND));
-
-        mockMvc
-            .perform(get(ASSUNTO_URL_PATH + "/100"))
-            .andDo(print())
-            .andExpect(status().isNotFound());
-    }
-
-    @Test
     public void deveRetornarStatusCreatedAoCadastrarAssuntoValido() throws Exception {
 
         given(assuntoService.cadastrarAssunto(ArgumentMatchers.any(AssuntoDtoInput.class)))
-            .willReturn(new ResponseEntity<>(CREATED));
+            .willReturn(new ResponseEntity("CREATED", CREATED));
 
         mockMvc.perform(post(ASSUNTO_URL_PATH)
                 .contentType(APPLICATION_JSON)
                 .content(json.write(new AssuntoDtoInput()).getJson()))
             .andDo(print())
-            .andExpect(status().isCreated());
-    }
-
-    @Test
-    public void deveRetornarStatusBadRequestAoCadastrarAssuntoInvalido() throws Exception {
-
-        given(assuntoService.cadastrarAssunto(ArgumentMatchers.any(AssuntoDtoInput.class)))
-            .willReturn(new ResponseEntity<>(BAD_REQUEST));
-
-        mockMvc.perform(post(ASSUNTO_URL_PATH)
-                .contentType(APPLICATION_JSON)
-                .content(json.write(new AssuntoDtoInput()).getJson()))
-            .andDo(print())
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isCreated())
+            .andExpect(content().string("CREATED"));
     }
 
 }

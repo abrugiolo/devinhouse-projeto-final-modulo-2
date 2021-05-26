@@ -3,6 +3,7 @@ package br.com.devinhouse.projetofinalmodulo2.services;
 import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.InteressadoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.*;
 import br.com.devinhouse.projetofinalmodulo2.repository.InteressadoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,13 +58,29 @@ class InteressadoServiceTest {
     }
 
     @Test
-    public void deveRetornarListaDeInteressadosAoBuscarTodosOsInteressados() {
+    public void deveRetornarListaAoBuscarTodosOsInteressados() {
         // given
         Interessado fulano = new Interessado(1, "fulano", "12345654321", LocalDate.parse("1950-01-01"), 's');
-        Interessado beltrano = new Interessado(2, "beltrano", "45678987654", LocalDate.parse("1955-01-01"), 's');
+        Interessado beltrano = new Interessado();
+        beltrano.setId(2);
+        beltrano.setNmInteressado("beltrano");
+        beltrano.setNuIdentificacao("45678987654");
+        beltrano.setDtNascimento(LocalDate.parse("1955-01-01"));
+        beltrano.setFlAtivo('s');
 
-        InteressadoDtoOutput fulanoDto = new InteressadoDtoOutput(fulano.getId(), fulano.getNmInteressado(), fulano.getNuIdentificacao(), fulano.getDtNascimento().toString(), fulano.getFlAtivo());
-        InteressadoDtoOutput beltranoDto = new InteressadoDtoOutput(beltrano.getId(), beltrano.getNmInteressado(), beltrano.getNuIdentificacao(), beltrano.getDtNascimento().toString(), beltrano.getFlAtivo());
+        InteressadoDtoOutput fulanoDto = new InteressadoDtoOutput();
+        fulanoDto.setId(fulano.getId());
+        fulanoDto.setNmInteressado(fulano.getNmInteressado());
+        fulanoDto.setNuIdentificacao(fulano.getNuIdentificacao());
+        fulanoDto.setDtNascimento(fulano.getDtNascimento().toString());
+        fulanoDto.setFlAtivo(fulano.getFlAtivo());
+
+        InteressadoDtoOutput beltranoDto = new InteressadoDtoOutput();
+        beltranoDto.setId(beltrano.getId());
+        beltranoDto.setNmInteressado(beltrano.getNmInteressado());
+        beltranoDto.setNuIdentificacao(beltrano.getNuIdentificacao());
+        beltranoDto.setDtNascimento(beltrano.getDtNascimento().toString());
+        beltranoDto.setFlAtivo(beltrano.getFlAtivo());
 
         // when
         when(modelMapper.map(fulano, InteressadoDtoOutput.class)).thenReturn(fulanoDto);
@@ -88,7 +105,12 @@ class InteressadoServiceTest {
     public void deveRetornarInteressadoAoBuscarIdValido() {
         // given
         Interessado interessado = new Interessado(1, "fulano", "12345654321", LocalDate.parse("1950-01-01"), 's');
-        InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput(interessado.getId(), interessado.getNmInteressado(), interessado.getNuIdentificacao(), interessado.getDtNascimento().toString(), interessado.getFlAtivo());
+        InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput();
+        interessadoDto.setId(interessado.getId());
+        interessadoDto.setNmInteressado(interessado.getNmInteressado());
+        interessadoDto.setNuIdentificacao(interessado.getNuIdentificacao());
+        interessadoDto.setDtNascimento(interessado.getDtNascimento().toString());
+        interessadoDto.setFlAtivo(interessado.getFlAtivo());
 
         // when
         when(modelMapper.map(interessado, InteressadoDtoOutput.class)).thenReturn(interessadoDto);
@@ -106,27 +128,30 @@ class InteressadoServiceTest {
     }
 
     @Test
-    public void deveRetornarStatusNotFoundAoBuscarIdInvalido() {
-        // given
-        Optional<Interessado> interessado = Optional.empty();
+    public void deveLancarExcecaoAoBuscarIdInexistente() {
+        assertThrows(NotFoundException.class, () -> {
+            // given
+            Optional<Interessado> interessado = Optional.empty();
 
-        // when
-        when(repository.findById(100)).thenReturn(interessado);
+            // when
+            when(repository.findById(100)).thenReturn(interessado);
 
-        // then
-        ResponseEntity<?> responseEntity = service.buscarInteressadoPeloId(100);
+            // then
+            service.buscarInteressadoPeloId(100);
 
-        assertAll(
-                () -> assertEquals(NOT_FOUND, responseEntity.getStatusCode()),
-                () -> verify(repository, times(1)).findById(100)
-        );
+        });
     }
 
     @Test
     public void deveRetornarInteressadoAoBuscarNuIdentificacaoValido() {
         // given
         Interessado interessado = new Interessado(1, "fulano", "12345654321", LocalDate.parse("1950-01-01"), 's');
-        InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput(interessado.getId(), interessado.getNmInteressado(), interessado.getNuIdentificacao(), interessado.getDtNascimento().toString(), interessado.getFlAtivo());
+        InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput();
+        interessadoDto.setId(interessado.getId());
+        interessadoDto.setNmInteressado(interessado.getNmInteressado());
+        interessadoDto.setNuIdentificacao(interessado.getNuIdentificacao());
+        interessadoDto.setDtNascimento(interessado.getDtNascimento().toString());
+        interessadoDto.setFlAtivo(interessado.getFlAtivo());
 
         // when
         when(modelMapper.map(interessado, InteressadoDtoOutput.class)).thenReturn(interessadoDto);
@@ -144,26 +169,29 @@ class InteressadoServiceTest {
     }
 
     @Test
-    public void deveRetornarStatusNotFoundAoBuscarNuIdentificacaoInvalido() {
-        // given
-        Optional<Interessado> interessado = Optional.empty();
+    public void deveLancarExcecaoAoBuscarNuIdentificacaoInexistente() {
+        assertThrows(NotFoundException.class, () -> {
+            // given
+            Optional<Interessado> interessado = Optional.empty();
 
-        // when
-        when(repository.findByNuIdentificacao("123456")).thenReturn(interessado);
+            // when
+            when(repository.findByNuIdentificacao("123456")).thenReturn(interessado);
 
-        // then
-        ResponseEntity<?> responseEntity = service.buscarInteressadoPeloNumeroDeIdentificacao("123456");
+            // then
+            service.buscarInteressadoPeloNumeroDeIdentificacao("123456");
 
-        assertAll(
-                () -> assertEquals(NOT_FOUND, responseEntity.getStatusCode()),
-                () -> verify(repository, times(1)).findByNuIdentificacao("123456")
-        );
+        });
     }
 
     @Test
     public void deveRetornarCreatedAoCadastrarInteressadoValido() {
         // given
-        InteressadoDtoInput interessadoDto = new InteressadoDtoInput( "fulano", "12345654321", LocalDate.now().toString(), 's');
+        InteressadoDtoInput interessadoDto = new InteressadoDtoInput();
+        interessadoDto.setNmInteressado("fulano");
+        interessadoDto.setNuIdentificacao("12345654321");
+        interessadoDto.setDtNascimento("1950-01-01");
+        interessadoDto.setFlAtivo('s');
+
         Interessado interessado = new Interessado(1, interessadoDto.getNmInteressado(), interessadoDto.getNuIdentificacao(), LocalDate.parse(interessadoDto.getDtNascimento()), interessadoDto.getFlAtivo());
 
         // when
@@ -180,78 +208,79 @@ class InteressadoServiceTest {
     }
 
     @Test
-    public void deveRetornarStatusBadRequestAoCadastrarInteressadoIncompleto() {
-        // given
-        InteressadoDtoInput interessadoDto = new InteressadoDtoInput();
-        interessadoDto.setNmInteressado("fulano");
-        interessadoDto.setFlAtivo('s');
+    public void deveLancarExcecaoAoCadastrarInteressadoIncompleto() {
+        assertThrows(CampoVazioException.class, () -> {
+            // given
+            InteressadoDtoInput interessadoDto = new InteressadoDtoInput();
+            interessadoDto.setNmInteressado("fulano");
+            interessadoDto.setFlAtivo('s');
 
-        // then
-        ResponseEntity<?> responseEntity = service.cadastrarInteressado(interessadoDto);
-
-        assertAll(
-                () -> assertEquals(BAD_REQUEST, responseEntity.getStatusCode()),
-                () -> verify(repository, times(0)).save(any(Interessado.class))
-        );
+            // when/then
+            service.cadastrarInteressado(interessadoDto);
+        });
     }
 
     @Test
-    public void deveRetornarStatusBadRequestAoCadastrarInteressadoComDataNascimentoInvalida() {
-        // given
-        InteressadoDtoInput interessadoDto = new InteressadoDtoInput("fulano", "12345654321", "1950-02-31", 's');
+    public void deveLancarExcecaoAoCadastrarInteressadoComDataNascimentoInvalida() {
+        assertThrows(DataInvalidaException.class, () -> {
+            // given
+            InteressadoDtoInput interessadoDto = new InteressadoDtoInput();
+            interessadoDto.setNmInteressado("fulano");
+            interessadoDto.setNuIdentificacao("12345654321");
+            interessadoDto.setDtNascimento("1950-02-31");
+            interessadoDto.setFlAtivo('s');
 
-        // then
-        ResponseEntity<?> responseEntity = service.cadastrarInteressado(interessadoDto);
-
-        assertAll(
-                () -> assertEquals(BAD_REQUEST, responseEntity.getStatusCode()),
-                () -> verify(repository, times(0)).save(any(Interessado.class))
-        );
+            // when/then
+            service.cadastrarInteressado(interessadoDto);
+        });
     }
 
     @Test
-    public void deveRetornarStatusBadRequestAoCadastrarInteressadoComFlAtivoInvalido() {
-        // given
-        InteressadoDtoInput interessadoDto = new InteressadoDtoInput("fulano", "12345654321", "1950-01-01", 'y');
+    public void deveLancarExcecaoAoCadastrarInteressadoComFlAtivoInvalido() {
+        assertThrows(FlAtivoInvalidoException.class, () -> {
+            // given
+            InteressadoDtoInput interessadoDto = new InteressadoDtoInput();
+            interessadoDto.setNmInteressado("fulano");
+            interessadoDto.setNuIdentificacao("12345654321");
+            interessadoDto.setDtNascimento("1950-01-01");
+            interessadoDto.setFlAtivo('y');
 
-        // then
-        ResponseEntity<?> responseEntity = service.cadastrarInteressado(interessadoDto);
-
-        assertAll(
-                () -> assertEquals(BAD_REQUEST, responseEntity.getStatusCode()),
-                () -> verify(repository, times(0)).save(any(Interessado.class))
-        );
+            // when/then
+            service.cadastrarInteressado(interessadoDto);
+        });
     }
 
     @Test
-    public void deveRetornarStatusBadRequestAoCadastrarInteressadoComNuIdentificacaoInvalido() {
-        // given
-        InteressadoDtoInput interessadoDto = new InteressadoDtoInput("fulano", "123456", "1950-01-01", 's');
+    public void deveLancarExcecaoAoCadastrarInteressadoComNuIdentificacaoInvalido() {
+        assertThrows(NuIdentificacaoInvalidoException.class, () -> {
+            // given
+            InteressadoDtoInput interessadoDto = new InteressadoDtoInput();
+            interessadoDto.setNmInteressado("fulano");
+            interessadoDto.setNuIdentificacao("123456");
+            interessadoDto.setDtNascimento("1950-01-01");
+            interessadoDto.setFlAtivo('s');
 
-        // then
-        ResponseEntity<?> responseEntity = service.cadastrarInteressado(interessadoDto);
-
-        assertAll(
-                () -> assertEquals(BAD_REQUEST, responseEntity.getStatusCode()),
-                () -> verify(repository, times(0)).save(any(Interessado.class))
-        );
+            // when/then
+            service.cadastrarInteressado(interessadoDto);
+        });
     }
 
     @Test
-    public void deveRetornarStatusBadRequestAoCadastrarInteressadoComNuIdentificacaoExistente() {
-        // given
-        InteressadoDtoInput interessadoDto = new InteressadoDtoInput("fulano", "12345654321", "1950-02-28", 's');
+    public void deveLancarExcecaoAoCadastrarInteressadoComNuIdentificacaoExistente() {
+        assertThrows(NuIdentificacaoJaExisteException.class, () -> {
+            // given
+            InteressadoDtoInput interessadoDto = new InteressadoDtoInput();
+            interessadoDto.setNmInteressado("fulano");
+            interessadoDto.setNuIdentificacao("12345654321");
+            interessadoDto.setDtNascimento("1950-01-01");
+            interessadoDto.setFlAtivo('s');
 
-        // when
-        when(repository.existsByNuIdentificacao("12345654321")).thenReturn(true);
+            // when
+            when(repository.existsByNuIdentificacao("12345654321")).thenReturn(true);
 
-        // then
-        ResponseEntity<?> responseEntity = service.cadastrarInteressado(interessadoDto);
-
-        assertAll(
-                () -> assertEquals(CONFLICT, responseEntity.getStatusCode()),
-                () -> verify(repository, times(0)).save(any(Interessado.class))
-        );
+            // then
+            service.cadastrarInteressado(interessadoDto);
+        });
     }
 
 }

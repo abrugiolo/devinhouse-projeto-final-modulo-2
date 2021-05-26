@@ -10,7 +10,7 @@ import javax.persistence.Column;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+//@AllArgsConstructor
 public class InteressadoDtoInput {
     private String nmInteressado;
     private String nuIdentificacao;
