@@ -20,7 +20,6 @@ class InteressadoRepositoryTest {
 	void tearDown() {
 		repository.deleteAll();
 	}
-
 	
 	@Test
 	void testFindByNuIdentificacao() {
@@ -29,7 +28,6 @@ class InteressadoRepositoryTest {
 		
 		assertEquals(nuIdentificacao, interessado.get().getNuIdentificacao());
 	}
-
 	
 	@Test
 	void testExistsByNuIdentificacao() {
@@ -37,5 +35,4 @@ class InteressadoRepositoryTest {
 		boolean atual = repository.existsByNuIdentificacao(nuIdentificacao);
 		assertTrue(atual);
 	}
-
 }

@@ -82,12 +82,14 @@ public class ProcessoService {
 		if (!interessadoRepository.findById(idInteressado).isPresent()) {
 			return new ResponseEntity<>("Nenhum processo encontrado para o interessado informado.", BAD_REQUEST);
 		}
+		
 		Interessado interessado = interessadoRepository.findById(idInteressado).get();
+		
 		if (interessado.getFlAtivo().equals('n')) {
 			return new ResponseEntity<>("Interessado inativo.", BAD_REQUEST);
-
 		}
-		List<Processo> listaProcessos = processoRepository.findBycdInteressado(interessado);
+		
+		List<Processo> listaProcessos = processoRepository.findByCdInteressado(interessado);
 		List<ProcessoDtoOutput> listaProcessosDto = listaProcessos.stream().map(this::converteParaDto)
 				.collect(Collectors.toList());
 		return new ResponseEntity<>(listaProcessosDto, OK);

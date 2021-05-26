@@ -30,7 +30,7 @@ class ProcessoRepositoryTest {
 	@Test
 	void testFindBycdInteressado() {
 		Interessado interessado = new Interessado(1, "Joao", "12345678901", LocalDate.parse("2000-05-19"), 's');
-		List<Processo> processoAtual = repository.findBycdInteressado(interessado);
+		List<Processo> processoAtual = repository.findByCdInteressado(interessado);
 		assertThat(processoAtual).asList().hasAtLeastOneElementOfType(Processo.class);
 	}
 
