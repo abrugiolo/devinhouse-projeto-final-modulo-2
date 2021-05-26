@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AssuntoDtoInput {
+
     private String descricao;
     private String dtCadastro;
     private Character flAtivo;

@@ -1,5 +1,6 @@
 package br.com.devinhouse.projetofinalmodulo2.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Assunto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,4 +27,3 @@ public class Assunto {
     @Column(nullable = false)
     private Character flAtivo;
 }
-
