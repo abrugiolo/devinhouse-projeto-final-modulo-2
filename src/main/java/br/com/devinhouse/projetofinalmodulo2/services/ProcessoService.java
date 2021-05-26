@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import br.com.devinhouse.projetofinalmodulo2.exceptions.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -58,11 +57,15 @@ public class ProcessoService {
 		if (interessadoRepository.findById(idInteressado).isEmpty()) {
 			throw new NotFoundException("Nenhum processo encontrado para o interessado informado.");
 		}
+		
 		Interessado interessado = interessadoRepository.findById(idInteressado).get();
+		
 		if (interessado.getFlAtivo().equals('n')) {
+
 			throw new InteressadoInativoException("Não foi possível efetuar a busca: Interessado inativo.");
 		}
-		List<Processo> listaProcessos = processoRepository.findBycdInteressado(interessado);
+		
+		List<Processo> listaProcessos = processoRepository.findByCdInteressado(interessado);
 		List<ProcessoDtoOutput> listaProcessosDto = listaProcessos.stream().map(this::converteParaDto)
 				.collect(Collectors.toList());
 		return new ResponseEntity<>(listaProcessosDto, OK);
@@ -87,15 +90,15 @@ public class ProcessoService {
 	}
 
 	public ResponseEntity<?> buscarProcessoPeloNumeroProcesso(Integer nuProcesso) {
-		List<Processo> listaProcessos = processoRepository.findByNuProcesso(nuProcesso).orElse(null);
+		Processo processo = processoRepository.findByNuProcesso(nuProcesso).orElse(null);
 
-		if (listaProcessos == null || listaProcessos.size() == 0) {
-			throw new NotFoundException(String.format("Nenhum processo encontrado com número '%d'.", nuProcesso));
+		if (processo == null) {
+      throw new NotFoundException(String.format("Nenhum processo encontrado com número '%d'.", nuProcesso));
 		}
 
-		List<ProcessoDtoOutput> listaProcessoDto = listaProcessos.stream().map(this::converteParaDto).collect(Collectors.toList());
+		ProcessoDtoOutput processoDto = converteParaDto(processo);
 
-		return new ResponseEntity<>(listaProcessoDto, OK);
+		return new ResponseEntity<>(processoDto, OK);
 	}
 
 	public ResponseEntity<?> cadastrarProcesso(ProcessoDtoInput processoDto) {
@@ -108,6 +111,7 @@ public class ProcessoService {
 				processoDto.getNuProcesso(), processoDto.getNuAno()));
 
 		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) {
+
 			throw new ChaveProcessoJaExisteException(String.format("Já existe um processo cadastrado com a chave '%s'.",
 					processoDto.getChaveProcesso()));
 		}

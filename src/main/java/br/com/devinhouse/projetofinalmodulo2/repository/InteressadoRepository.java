@@ -13,5 +13,4 @@ public interface InteressadoRepository extends JpaRepository<Interessado, Intege
     Optional<Interessado> findByNuIdentificacao(String nuIdentificacao);
 
     boolean existsByNuIdentificacao(String nuIdentificacao);
-
 }

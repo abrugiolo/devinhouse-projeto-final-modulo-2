@@ -20,6 +20,7 @@ public class ProcessoController {
 	public ResponseEntity<?> pesquisarProcesso(@RequestParam(name = "id-interessado", required = false) Integer idInteressado,
 											   @PathVariable(name = "id-processo", required = false) Integer idProcesso,
 											   @RequestParam(name = "nu-processo", required = false) Integer nuProcesso) {
+
 		if (idInteressado != null) {
 			return processoService.buscarProcessosPorInteressado(idInteressado);
 		}
