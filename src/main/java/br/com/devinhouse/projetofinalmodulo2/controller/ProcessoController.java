@@ -16,9 +16,9 @@ public class ProcessoController {
 	@Autowired
 	private ProcessoService processoService;
 	
-	@GetMapping(produces = APPLICATION_JSON_VALUE)
+	@GetMapping(path = {"", "/{id-processo}"}, produces = APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> pesquisarProcesso(@RequestParam(name = "id-interessado", required = false) Integer idInteressado,
-												@RequestParam(name = "id-processo", required = false) Integer idProcesso,
+												@PathVariable(name = "id-processo", required = false) Integer idProcesso,
 												@RequestParam(name = "nu-processo", required = false) Integer nuProcesso) {
 		if (idInteressado != null) {
 			return processoService.buscarProcessosPorInteressado(idInteressado);

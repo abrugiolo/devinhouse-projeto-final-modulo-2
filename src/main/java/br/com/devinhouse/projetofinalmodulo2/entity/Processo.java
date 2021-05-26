@@ -2,12 +2,14 @@ package br.com.devinhouse.projetofinalmodulo2.entity;
 
 import javax.persistence.*;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
 public class Processo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

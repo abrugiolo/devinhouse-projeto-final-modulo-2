@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -114,16 +113,16 @@ public class ProcessoService {
 	}
 
 	public ResponseEntity<?> buscarProcessoPeloNumeroProcesso(Integer nuProcesso) {
-		List<Processo> listaProcessos = processoRepository.findByNuProcesso(nuProcesso).orElse(null);
+		Processo processo = processoRepository.findByNuProcesso(nuProcesso).orElse(null);
 
-		if (listaProcessos == null || listaProcessos.size() == 0) {
+		if (processo == null) {
 			return new ResponseEntity<>(String.format("Nenhum processo encontrado com número '%d'.", nuProcesso), 
 					BAD_REQUEST);
 		}
 
-		List<ProcessoDtoOutput> listaProcessoDto = listaProcessos.stream().map(this::converteParaDto).collect(Collectors.toList());
+		ProcessoDtoOutput processoDto = converteParaDto(processo);
 
-		return new ResponseEntity<>(listaProcessoDto, OK);
+		return new ResponseEntity<>(processoDto, OK);
 	}
 
 	public ResponseEntity<?> cadastrarProcesso(ProcessoDtoInput processoDto) {
@@ -135,7 +134,7 @@ public class ProcessoService {
 		processoDto.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(processoDto.getSgOrgaoSetor(),
 				processoDto.getNuProcesso(), processoDto.getNuAno()));
 
-		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) { // TODO: confirmar msg aqui
+		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) {
 			return new ResponseEntity<>(String.format("Já existe um processo cadastrado com a chave '%s'.", 
 					processoDto.getChaveProcesso()), CONFLICT);
 		}
