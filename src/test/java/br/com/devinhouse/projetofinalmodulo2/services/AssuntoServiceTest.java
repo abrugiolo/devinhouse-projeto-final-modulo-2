@@ -26,11 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Collections.EMPTY_LIST;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.*;
 
