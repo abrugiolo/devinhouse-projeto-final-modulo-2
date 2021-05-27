@@ -1,6 +1,11 @@
 package br.com.devinhouse.projetofinalmodulo2.services;
 
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
@@ -12,10 +17,14 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import static org.hamcrest.Matchers.*;
@@ -24,11 +33,17 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoOutput;
+import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoOutput;
+import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
 import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
 import br.com.devinhouse.projetofinalmodulo2.entity.Processo;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.AssuntoInativoException;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.CampoVazioException;
+import br.com.devinhouse.projetofinalmodulo2.exceptions.ChaveProcessoJaExisteException;
 import br.com.devinhouse.projetofinalmodulo2.exceptions.InteressadoInativoException;
 import br.com.devinhouse.projetofinalmodulo2.exceptions.NotFoundException;
+import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
 import br.com.devinhouse.projetofinalmodulo2.repository.InteressadoRepository;
 import br.com.devinhouse.projetofinalmodulo2.repository.ProcessoRepository;
 
@@ -42,16 +57,28 @@ class ProcessoServiceTest {
 	private InteressadoRepository repositoryInteressado;
 
 	@Mock
+	private AssuntoRepository repositoryAssunto;
+
+	@Mock
 	private ModelMapper modelMapper;
 
 	@InjectMocks
 	private ProcessoService service;
+
+	private static MockedStatic<ValidacaoCampos> valida = Mockito.mockStatic(ValidacaoCampos.class);
 
 	@Test
 	void deveRetornarProcessoInformandoInteressado() {
 
 		Interessado interessado = new Interessado(1, "Joao", "12345678901", LocalDate.parse("2000-05-19"), 's');
 		ProcessoDtoOutput processoDtoOutput = new ProcessoDtoOutput();
+		processoDtoOutput.setCdAssunto(null);
+		processoDtoOutput.setCdInteressado(null);
+		processoDtoOutput.setChaveProcesso(null);
+		processoDtoOutput.setDescricao(null);
+		processoDtoOutput.setId(null);
+		processoDtoOutput.setNuAno(null);
+		processoDtoOutput.setSgOrgaoSetor(null);
 		Processo processo = new Processo();
 
 		when(repositoryInteressado.findById(1)).thenReturn(Optional.of(interessado));
@@ -154,7 +181,218 @@ class ProcessoServiceTest {
 	}
 
 	@Test
-	public void deveRetornarOkAoDeletarProcessoExistente() {
+	void deveCadastrarNovoProcesso() {
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		Interessado interessado = new Interessado();
+		Assunto assunto = new Assunto();
+		Processo processo = new Processo();
+
+		processoDtoInput.setChaveProcesso("SOFT 1/2021");
+		processoDtoInput.setCdAssunto(assunto);
+		processoDtoInput.setCdInteressado(interessado);
+		processoDtoInput.setDescricao("Descricao");
+		processoDtoInput.setNuAno("2021");
+		processoDtoInput.setNuProcesso(1);
+		processoDtoInput.setSgOrgaoSetor("SOFT");
+
+		valida.when(() -> ValidacaoCampos.validarCamposPreenchidos(processoDtoInput)).thenReturn(true);
+		when(modelMapper.map(processoDtoInput, Processo.class)).thenReturn(processo);
+		when(repositoryProcesso.save(processo)).thenReturn(processo);
+
+		ResponseEntity<?> responseEntity = service.cadastrarProcesso(processoDtoInput);
+		verify(repositoryProcesso).save(processo);
+
+		assertAll(() -> assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode()),
+				() -> assertThat(responseEntity.getBody(), is(instanceOf(String.class))));
+	}
+	
+	@Test
+	void deveCadastrarNovoProcessoNuProcessoMaiorQueUm() {
+		List<Processo> processoList = new ArrayList<Processo>();
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		Interessado interessado = new Interessado();
+		Assunto assunto = new Assunto();
+		processoList.add(new Processo(1, "SOFT", 1, "2021", "SOFT 1/2021", "Descricao", assunto, interessado));
+
+		processoDtoInput.setCdAssunto(assunto);
+		processoDtoInput.setCdInteressado(interessado);
+		processoDtoInput.setDescricao("Descricao");
+		processoDtoInput.setNuAno("2021");
+		processoDtoInput.setSgOrgaoSetor("SOFT");
+
+		valida.when(() -> ValidacaoCampos.validarCamposPreenchidos(processoDtoInput)).thenReturn(true);
+		when(repositoryProcesso.findAll()).thenReturn(processoList);
+		
+		ResponseEntity<?> responseEntity = service.cadastrarProcesso(processoDtoInput);
+        
+		assertAll(() -> assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode()),
+				() -> assertThat(responseEntity.getBody(), is(instanceOf(String.class))),
+				() -> assertEquals(Integer.valueOf(2), processoDtoInput.getNuProcesso()));
+	}
+
+	@Test
+	void deveLancarExceptionParaPreencherTodosOsCampos() {
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+
+		assertThatThrownBy(() -> service.cadastrarProcesso(processoDtoInput)).isInstanceOf(CampoVazioException.class)
+				.hasMessageContaining("Todos os campos devem estar preenchidos.");
+	}
+
+	@Test
+	void deveRetornarExceptionParaChaveProcessoJaCadastrados() {
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		Interessado interessado = new Interessado();
+		Assunto assunto = new Assunto();
+
+		processoDtoInput.setChaveProcesso("SOFT 1/2021");
+		processoDtoInput.setCdAssunto(assunto);
+		processoDtoInput.setCdInteressado(interessado);
+		processoDtoInput.setDescricao("Descricao");
+		processoDtoInput.setNuAno("2021");
+		processoDtoInput.setNuProcesso(1);
+		processoDtoInput.setSgOrgaoSetor("SOFT");
+
+		valida.when(() -> ValidacaoCampos.validarCamposPreenchidos(processoDtoInput)).thenReturn(true);
+		when(repositoryProcesso.existsByChaveProcesso(processoDtoInput.getChaveProcesso())).thenReturn(true);
+
+		assertThatThrownBy(() -> service.cadastrarProcesso(processoDtoInput))
+				.isInstanceOf(ChaveProcessoJaExisteException.class)
+				.hasMessageContaining("Já existe um processo cadastrado com a chave 'SOFT 1/2021'.");
+	}
+
+	@Test
+	void deveRetornarExceptionParaInteressadoInativoOuInexistente() {
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		Interessado interessado = new Interessado();
+		interessado.setFlAtivo('n');
+		Assunto assunto = new Assunto();
+
+		processoDtoInput.setChaveProcesso("SOFT 1/2021");
+		processoDtoInput.setCdAssunto(assunto);
+		processoDtoInput.setCdInteressado(interessado);
+		processoDtoInput.setDescricao("Descricao");
+		processoDtoInput.setNuAno("2021");
+		processoDtoInput.setNuProcesso(1);
+		processoDtoInput.setSgOrgaoSetor("SOFT");
+
+		valida.when(() -> ValidacaoCampos.validarCamposPreenchidos(processoDtoInput)).thenReturn(true);
+		valida.when(() -> ValidacaoCampos.validadorInteressadoInativo(repositoryInteressado,
+				processoDtoInput.getCdInteressado())).thenReturn(true);
+
+		assertThatThrownBy(() -> service.cadastrarProcesso(processoDtoInput))
+				.isInstanceOf(InteressadoInativoException.class)
+				.hasMessageContaining("Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
+	}
+
+	@Test
+	void deveRetornarExceptionParaAssuntoInativoOuInexistente() {
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		Interessado interessado = new Interessado();
+		Assunto assunto = new Assunto();
+		assunto.setFlAtivo('n');
+
+		processoDtoInput.setChaveProcesso("SOFT 1/2021");
+		processoDtoInput.setCdAssunto(assunto);
+		processoDtoInput.setCdInteressado(interessado);
+		processoDtoInput.setDescricao("Descricao");
+		processoDtoInput.setNuAno("2021");
+		processoDtoInput.setNuProcesso(1);
+		processoDtoInput.setSgOrgaoSetor("SOFT");
+
+		valida.when(() -> ValidacaoCampos.validarCamposPreenchidos(processoDtoInput)).thenReturn(true);
+		valida.when(() -> ValidacaoCampos.validadorAssuntoInativo(repositoryAssunto, processoDtoInput.getCdAssunto()))
+				.thenReturn(true);
+
+		assertThatThrownBy(() -> service.cadastrarProcesso(processoDtoInput))
+				.isInstanceOf(AssuntoInativoException.class)
+				.hasMessageContaining("Não foi possível cadastrar o processo: Assunto inativo ou inexistente.");
+	}
+
+	@Test
+	void deveAtualizarProcesso() {
+		Processo processo = new Processo();
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		Interessado interessado = new Interessado();
+		Assunto assunto = new Assunto();
+
+		processoDtoInput.setChaveProcesso("SOFT 1/2021");
+		processoDtoInput.setCdAssunto(assunto);
+		processoDtoInput.setCdInteressado(interessado);
+		processoDtoInput.setDescricao("Descricao");
+		processoDtoInput.setNuAno("2021");
+		processoDtoInput.setNuProcesso(1);
+		processoDtoInput.setSgOrgaoSetor("SOFT");
+
+		when(repositoryProcesso.findById(1)).thenReturn(Optional.of(processo));
+
+		ResponseEntity<?> responseEntity = service.atualizarProcesso(1, processoDtoInput);
+
+		ArgumentCaptor<Processo> processoArgumentCaptor = ArgumentCaptor.forClass(Processo.class);
+		verify(repositoryProcesso).save(processoArgumentCaptor.capture());
+
+		Processo capturedProcesso = processoArgumentCaptor.getValue();
+		assertThat(capturedProcesso.getCdAssunto(), is(processoDtoInput.getCdAssunto()));
+		assertThat(capturedProcesso.getChaveProcesso(), is(processoDtoInput.getChaveProcesso()));
+		assertThat(capturedProcesso.getCdInteressado(), is(processoDtoInput.getCdInteressado()));
+		assertThat(capturedProcesso.getDescricao(), is(processoDtoInput.getDescricao()));
+
+		assertAll(() -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+				() -> assertThat(responseEntity.getBody(), is(instanceOf(String.class))));
+	}
+
+	@Test
+	void deveLancarExceptionParaChaveExistente() {
+		Processo processo = new Processo();
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		processoDtoInput.setNuAno("2021");
+		processoDtoInput.setNuProcesso(1);
+		processoDtoInput.setSgOrgaoSetor("SOFT");
+		processo.setChaveProcesso("SOFT 1/2021");
+
+		when(repositoryProcesso.findById(1)).thenReturn(Optional.of(processo));
+		when(repositoryProcesso.existsByChaveProcesso(processo.getChaveProcesso())).thenReturn(true);
+
+		assertThatThrownBy(() -> service.atualizarProcesso(1, processoDtoInput))
+				.isInstanceOf(ChaveProcessoJaExisteException.class)
+				.hasMessageContaining("Chave do processo já existe no sistema.");
+	}
+
+	@Test
+	void deveLancarExceptionParaInteressadoInativo() {
+		Processo processo = new Processo();
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		Interessado interessado = new Interessado();
+		interessado.setFlAtivo('n');
+		processoDtoInput.setCdInteressado(interessado);
+
+		when(repositoryProcesso.findById(1)).thenReturn(Optional.of(processo));
+		valida.when(() -> ValidacaoCampos.validadorInteressadoInativo(repositoryInteressado,
+				processoDtoInput.getCdInteressado())).thenReturn(true);
+
+		assertThatThrownBy(() -> service.atualizarProcesso(1, processoDtoInput))
+				.isInstanceOf(InteressadoInativoException.class)
+				.hasMessageContaining("Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
+	}
+
+	@Test
+	void deveLancarExceptionParaAssuntoInativo() {
+		Processo processo = new Processo();
+		ProcessoDtoInput processoDtoInput = new ProcessoDtoInput();
+		Assunto assunto = new Assunto();
+		assunto.setFlAtivo('n');
+		processoDtoInput.setCdAssunto(assunto);
+
+		when(repositoryProcesso.findById(1)).thenReturn(Optional.of(processo));
+		valida.when(() -> ValidacaoCampos.validadorAssuntoInativo(repositoryAssunto, processoDtoInput.getCdAssunto()))
+				.thenReturn(true);
+
+		assertThatThrownBy(() -> service.atualizarProcesso(1, processoDtoInput))
+				.isInstanceOf(AssuntoInativoException.class)
+				.hasMessageContaining("Não foi possível cadastrar o processo: Assunto inativo ou inexistente.");
+	}
+  
+  @Test
+  	public void deveRetornarOkAoDeletarProcessoExistente() {
 
 		when(repositoryProcesso.existsById(1)).thenReturn(true);
 
@@ -177,6 +415,5 @@ class ProcessoServiceTest {
 		});
 
 		verify(repositoryProcesso, times(0)).deleteById(1);
-	}
-
+  }
 }

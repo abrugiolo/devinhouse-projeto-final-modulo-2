@@ -102,7 +102,7 @@ public class ProcessoService {
 		if (!ValidacaoCampos.validarCamposPreenchidos(processoDto)) {
 			throw new CampoVazioException("Todos os campos devem estar preenchidos.");
 		}
-
+		
 		processoDto.setNuProcesso(retornarUltimoNuProcesso());
 		processoDto.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(processoDto.getSgOrgaoSetor(),
 				processoDto.getNuProcesso(), processoDto.getNuAno()));
