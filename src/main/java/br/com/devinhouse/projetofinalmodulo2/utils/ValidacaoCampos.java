@@ -46,13 +46,13 @@ public class ValidacaoCampos {
     }
 
     public static boolean validadorInteressadoInativo(InteressadoRepository interessadoRepository, Interessado interessado){
-        if (interessado != null) {
-            interessado = interessadoRepository.findById(interessado.getId()).orElse(null);
 
-            if (interessado == null || interessado.getFlAtivo().equals('n')) {
-                return true;
-            }
+            if (interessado != null) {
+            	interessado = interessadoRepository.findById(interessado.getId()).orElse(null);
         }
+            if (interessado == null || interessado.getFlAtivo().equals('n')) {
+            	return true;
+            }
         return false;
     }
 
