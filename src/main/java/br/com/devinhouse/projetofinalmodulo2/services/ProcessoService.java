@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoOutput;
-import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
 import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
 import br.com.devinhouse.projetofinalmodulo2.entity.Processo;
 import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
@@ -50,32 +49,30 @@ public class ProcessoService {
 		if (listaProcesso.size() == 0) {
 			return 1;
 		}
-		return listaProcesso.get(listaProcesso.size()-1).getNuProcesso() + 1;
+		return listaProcesso.get(listaProcesso.size() - 1).getNuProcesso() + 1;
 	}
 
 	public ResponseEntity<?> buscarProcessosPorInteressado(Integer idInteressado) {
 		if (interessadoRepository.findById(idInteressado).isEmpty()) {
 			throw new NotFoundException("Nenhum processo encontrado para o interessado informado.");
 		}
-		
+	
 		Interessado interessado = interessadoRepository.findById(idInteressado).get();
-		
 		if (interessado.getFlAtivo().equals('n')) {
-
 			throw new InteressadoInativoException("Não foi possível efetuar a busca: Interessado inativo.");
 		}
-		
+	
 		List<Processo> listaProcessos = processoRepository.findByCdInteressado(interessado);
 		List<ProcessoDtoOutput> listaProcessosDto = listaProcessos.stream().map(this::converteParaDto)
 				.collect(Collectors.toList());
 		return new ResponseEntity<>(listaProcessosDto, OK);
 	}
-
+	
 	public ResponseEntity<?> buscarTodosOsProcessos() {
-		if (processoRepository.findAll().isEmpty()) {
-			return new ResponseEntity<>("Não existem processos cadastrados.", OK);
-		}
 		List<Processo> listaProcessos = processoRepository.findAll();
+		if (listaProcessos.isEmpty()) {
+			throw new NotFoundException("Não existem processos cadastrados.");
+		}
 		List<ProcessoDtoOutput> listaProcessoDto = listaProcessos.stream().map(this::converteParaDto)
 				.collect(Collectors.toList());
 
@@ -93,9 +90,9 @@ public class ProcessoService {
 		Processo processo = processoRepository.findByNuProcesso(nuProcesso).orElse(null);
 
 		if (processo == null) {
-      throw new NotFoundException(String.format("Nenhum processo encontrado com número '%d'.", nuProcesso));
+			throw new NotFoundException(String.format("Nenhum processo encontrado com número '%d'.", nuProcesso));
 		}
-
+		
 		ProcessoDtoOutput processoDto = converteParaDto(processo);
 
 		return new ResponseEntity<>(processoDto, OK);
@@ -111,13 +108,13 @@ public class ProcessoService {
 				processoDto.getNuProcesso(), processoDto.getNuAno()));
 
 		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) {
-
 			throw new ChaveProcessoJaExisteException(String.format("Já existe um processo cadastrado com a chave '%s'.",
 					processoDto.getChaveProcesso()));
 		}
 
 		if (ValidacaoCampos.validadorInteressadoInativo(interessadoRepository, processoDto.getCdInteressado())) {
-			throw new InteressadoInativoException("Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
+			throw new InteressadoInativoException(
+					"Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
 		}
 
 		if (ValidacaoCampos.validadorAssuntoInativo(assuntoRepository, processoDto.getCdAssunto())) {
@@ -135,30 +132,31 @@ public class ProcessoService {
 		if (processoDto.getSgOrgaoSetor() != null) {
 			processo.setSgOrgaoSetor(processoDto.getSgOrgaoSetor());
 		}
-		if(processoDto.getNuProcesso() != null) {
+		if (processoDto.getNuProcesso() != null) {
 			processo.setNuProcesso(processoDto.getNuProcesso());
 		}
-		if(processoDto.getNuAno() != null) {
+		if (processoDto.getNuAno() != null) {
 			processo.setNuAno(processoDto.getNuAno());
 		}
-		if(processoDto.getDescricao() != null) {
+		if (processoDto.getDescricao() != null) {
 			processo.setDescricao(processoDto.getDescricao());
 		}
-		if(processoDto.getCdAssunto() != null) {
+		if (processoDto.getCdAssunto() != null) {
 			processo.setCdAssunto(processoDto.getCdAssunto());
 		}
-		if(processoDto.getCdInteressado() != null) {
+		if (processoDto.getCdInteressado() != null) {
 			processo.setCdInteressado(processoDto.getCdInteressado());
 		}
-		processo.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(
-				processo.getSgOrgaoSetor(), processo.getNuProcesso(), processo.getNuAno()));
+		processo.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(processo.getSgOrgaoSetor(),
+				processo.getNuProcesso(), processo.getNuAno()));
 
 		if (processoRepository.existsByChaveProcesso(processo.getChaveProcesso())) {
 			throw new ChaveProcessoJaExisteException("Chave do processo já existe no sistema.");
 		}
 
 		if (ValidacaoCampos.validadorInteressadoInativo(interessadoRepository, processoDto.getCdInteressado())) {
-			throw new InteressadoInativoException("Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
+			throw new InteressadoInativoException(
+					"Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
 		}
 
 		if (ValidacaoCampos.validadorAssuntoInativo(assuntoRepository, processoDto.getCdAssunto())) {

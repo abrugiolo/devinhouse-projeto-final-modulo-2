@@ -24,61 +24,64 @@ import static org.springframework.http.HttpStatus.*;
 @Service
 public class AssuntoService {
 
-    @Autowired
-    private AssuntoRepository assuntoRepository;
+	@Autowired
+	private AssuntoRepository assuntoRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+	@Autowired
+	private ModelMapper modelMapper;
 
-    private Assunto converteParaAssunto(AssuntoDtoInput assuntoDtoInput) {
-        modelMapper.addConverter(new ConversorStringParaLocalDate());
-        return modelMapper.map(assuntoDtoInput, Assunto.class);
-    }
+	private Assunto converteParaAssunto(AssuntoDtoInput assuntoDtoInput) {
+		modelMapper.addConverter(new ConversorStringParaLocalDate());
+		return modelMapper.map(assuntoDtoInput, Assunto.class);
+	}
 
-    private AssuntoDtoOutput converteParaDto(Assunto assunto) {
-        modelMapper.addConverter(new ConversorLocalDateParaString());
-        return modelMapper.map(assunto, AssuntoDtoOutput.class);
-    }
+	private AssuntoDtoOutput converteParaDto(Assunto assunto) {
+		modelMapper.addConverter(new ConversorLocalDateParaString());
+		return modelMapper.map(assunto, AssuntoDtoOutput.class);
+	}
 
-    public ResponseEntity<?> buscarTodosOsAssuntos() {
-        List<Assunto> listaAssuntos = assuntoRepository.findAll();
+	public ResponseEntity<?> buscarTodosOsAssuntos() {
+		List<Assunto> listaAssuntos = assuntoRepository.findAll();
 
-        if (listaAssuntos.isEmpty()) {
-            return new ResponseEntity<>("Não existem assuntos cadastrados.", OK);
-        }
+		if (listaAssuntos.isEmpty()) {
+			return new ResponseEntity<>("Não existem assuntos cadastrados.", OK);
+		}
 
-        List<AssuntoDtoOutput> listaAssuntoDtoOutput = listaAssuntos.stream().map(this::converteParaDto).collect(Collectors.toList());
+		List<AssuntoDtoOutput> listaAssuntoDtoOutput = listaAssuntos.stream().map(this::converteParaDto)
+				.collect(Collectors.toList());
 
-        return new ResponseEntity<>(listaAssuntoDtoOutput, OK);
-    }
+		return new ResponseEntity<>(listaAssuntoDtoOutput, OK);
+	}
 
-    public ResponseEntity<?> buscarAssuntoPeloId(Integer id) {
-        Assunto assunto = assuntoRepository.findById(id).orElse(null);
+	public ResponseEntity<?> buscarAssuntoPeloId(Integer id) {
+		Assunto assunto = assuntoRepository.findById(id).orElse(null);
 
-        if (assunto == null) {
-            throw new NotFoundException(String.format("Nenhum assunto encontrado com id '%d'.", id));
-        }
+		if (assunto == null) {
+			throw new NotFoundException(String.format("Nenhum assunto encontrado com id '%d'.", id));
+		}
 
-        return new ResponseEntity<>(converteParaDto(assunto), OK);
-    }
+		return new ResponseEntity<>(converteParaDto(assunto), OK);
+	}
 
-    public ResponseEntity<?> cadastrarAssunto(AssuntoDtoInput assuntoDtoInput) {
+	public ResponseEntity<?> cadastrarAssunto(AssuntoDtoInput assuntoDtoInput) {
 
-        if (!ValidacaoCampos.validarCamposPreenchidos(assuntoDtoInput)) {
-            throw new CampoVazioException("Todos os campos devem ser preenchidos.");
-        }
+		if (!ValidacaoCampos.validarCamposPreenchidos(assuntoDtoInput)) {
+			throw new CampoVazioException("Todos os campos devem ser preenchidos.");
+		}
 
-        if (!ValidacaoCampos.validarData(assuntoDtoInput.getDtCadastro())) {
-            throw new DataInvalidaException(String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.", assuntoDtoInput.getDtCadastro()));
-        }
+		if (!ValidacaoCampos.validarData(assuntoDtoInput.getDtCadastro())) {
+			throw new DataInvalidaException(
+					String.format("Data informada '%s' inválida: Deve estar no formato 'AAAA-MM-DD'.",
+							assuntoDtoInput.getDtCadastro()));
+		}
 
-        if (!ValidacaoCampos.validarFlAtivo(assuntoDtoInput.getFlAtivo())) {
-            throw new FlAtivoInvalidoException("Campo 'flAtivo' deve ser igual a 's' ou 'n'.");
-        }
+		if (!ValidacaoCampos.validarFlAtivo(assuntoDtoInput.getFlAtivo())) {
+			throw new FlAtivoInvalidoException("Campo 'flAtivo' deve ser igual a 's' ou 'n'.");
+		}
 
-        Assunto assunto = converteParaAssunto(assuntoDtoInput);
-        assuntoRepository.save(assunto);
+		Assunto assunto = converteParaAssunto(assuntoDtoInput);
+		assuntoRepository.save(assunto);
 
-        return new ResponseEntity<>("Assunto cadastrado com sucesso.", CREATED);
-    }
+		return new ResponseEntity<>("Assunto cadastrado com sucesso.", CREATED);
+	}
 }
