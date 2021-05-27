@@ -4,8 +4,6 @@ package br.com.devinhouse.projetofinalmodulo2.services;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
@@ -18,12 +16,13 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
@@ -33,9 +32,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoOutput;
-import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoOutput;
-import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
 import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
 import br.com.devinhouse.projetofinalmodulo2.entity.Processo;
 import br.com.devinhouse.projetofinalmodulo2.exceptions.AssuntoInativoException;
@@ -64,9 +61,20 @@ class ProcessoServiceTest {
 
 	@InjectMocks
 	private ProcessoService service;
+	
+	private static MockedStatic<ValidacaoCampos> valida;
 
-	private static MockedStatic<ValidacaoCampos> valida = Mockito.mockStatic(ValidacaoCampos.class);
+	@AfterAll
+	 public static void tearDown() {
+        valida.close();
+    }
+	
 
+    @BeforeAll
+    public static void setup() {
+        valida = mockStatic(ValidacaoCampos.class);
+    }
+	
 	@Test
 	void deveRetornarProcessoInformandoInteressado() {
 
@@ -202,7 +210,7 @@ class ProcessoServiceTest {
 		ResponseEntity<?> responseEntity = service.cadastrarProcesso(processoDtoInput);
 		verify(repositoryProcesso).save(processo);
 
-		assertAll(() -> assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode()),
+		assertAll(() -> assertEquals(CREATED, responseEntity.getStatusCode()),
 				() -> assertThat(responseEntity.getBody(), is(instanceOf(String.class))));
 	}
 	
@@ -225,7 +233,7 @@ class ProcessoServiceTest {
 		
 		ResponseEntity<?> responseEntity = service.cadastrarProcesso(processoDtoInput);
         
-		assertAll(() -> assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode()),
+		assertAll(() -> assertEquals(CREATED, responseEntity.getStatusCode()),
 				() -> assertThat(responseEntity.getBody(), is(instanceOf(String.class))),
 				() -> assertEquals(Integer.valueOf(2), processoDtoInput.getNuProcesso()));
 	}
@@ -336,7 +344,7 @@ class ProcessoServiceTest {
 		assertThat(capturedProcesso.getCdInteressado(), is(processoDtoInput.getCdInteressado()));
 		assertThat(capturedProcesso.getDescricao(), is(processoDtoInput.getDescricao()));
 
-		assertAll(() -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+		assertAll(() -> assertEquals(OK, responseEntity.getStatusCode()),
 				() -> assertThat(responseEntity.getBody(), is(instanceOf(String.class))));
 	}
 
