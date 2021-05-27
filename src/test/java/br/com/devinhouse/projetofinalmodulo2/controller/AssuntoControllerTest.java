@@ -2,8 +2,6 @@ package br.com.devinhouse.projetofinalmodulo2.controller;
 
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoOutput;
-import br.com.devinhouse.projetofinalmodulo2.exceptions.DefaultExceptionHandler;
-import br.com.devinhouse.projetofinalmodulo2.exceptions.NotFoundException;
 import br.com.devinhouse.projetofinalmodulo2.services.AssuntoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,25 +10,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -58,19 +48,6 @@ class AssuntoControllerTest {
         JacksonTester.initFields(this, new ObjectMapper());
         mockMvc = MockMvcBuilders.standaloneSetup(assuntoController).build();
     }
-
-//    @Test
-//    public void deveRetornarListaVaziaAoBuscarTodosOsAssuntos() throws Exception {
-//
-//        given(assuntoService.buscarTodosOsAssuntos())
-//            .willReturn(new ResponseEntity(Collections.emptyList(), OK));
-//
-//        mockMvc
-//            .perform(get(ASSUNTO_URL_PATH))
-//            .andDo(print())
-//            .andExpect(status().isOk())
-//            .andExpect(content().string("[]"));
-//    }
 
     @Test
     public void deveRetornarListaAoBuscarTodosOsAssuntos() throws Exception {

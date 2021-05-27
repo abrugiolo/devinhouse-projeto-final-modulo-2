@@ -8,10 +8,14 @@ import br.com.devinhouse.projetofinalmodulo2.exceptions.DataInvalidaException;
 import br.com.devinhouse.projetofinalmodulo2.exceptions.FlAtivoInvalidoException;
 import br.com.devinhouse.projetofinalmodulo2.exceptions.NotFoundException;
 import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
+import br.com.devinhouse.projetofinalmodulo2.utils.ValidacaoCampos;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -42,8 +46,20 @@ class AssuntoServiceTest {
     @InjectMocks
     private AssuntoService service;
 
+    private static MockedStatic<ValidacaoCampos> validacaoCampos;
+
+    @BeforeAll
+    public static void setup() {
+        validacaoCampos = mockStatic(ValidacaoCampos.class);
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        validacaoCampos.close();
+    }
+
     @Test
-    public void deveRetornarListaVaziaAoBuscarTodosOsAssuntos() {
+    public void deveRetornarMensagemNenhumEncontradoAoBuscarTodosOsAssuntos() {
         // given
         List<Assunto> listaVazia = Collections.emptyList();
 
@@ -52,11 +68,10 @@ class AssuntoServiceTest {
 
         // then
         ResponseEntity<?> responseEntity = service.buscarTodosOsAssuntos();
-        String responseBody = (String) responseEntity.getBody();
 
         assertAll(
                 () -> assertEquals(OK, responseEntity.getStatusCode()),
-                () -> assertEquals("Não existem assuntos cadastrados.", responseBody),
+                () -> assertThat(responseEntity.getBody(), is(instanceOf(String.class))),
                 () -> verify(repository, times(1)).findAll()
         );
     }
@@ -64,10 +79,22 @@ class AssuntoServiceTest {
     @Test
     public void deveRetornarListaAoBuscarTodosOsAssuntos() {
         // given
-        Assunto assunto1 = new Assunto();
+        Assunto assunto1 = new Assunto(1, "descricao", LocalDate.now(), 's');
         Assunto assunto2 = new Assunto();
+        assunto2.setId(2);
+        assunto2.setDescricao("descricao");
+        assunto2.setDtCadastro(LocalDate.now());
+        assunto2.setFlAtivo('s');
         AssuntoDtoOutput assuntoDto1 = new AssuntoDtoOutput();
+        assuntoDto1.setId(assunto1.getId());
+        assuntoDto1.setDescricao(assunto1.getDescricao());
+        assuntoDto1.setDtCadastro(assunto1.getDtCadastro().toString());
+        assuntoDto1.setFlAtivo(assunto1.getFlAtivo());
         AssuntoDtoOutput assuntoDto2 = new AssuntoDtoOutput();
+        assuntoDto2.setId(assunto2.getId());
+        assuntoDto2.setDescricao(assunto2.getDescricao());
+        assuntoDto2.setDtCadastro(assunto2.getDtCadastro().toString());
+        assuntoDto2.setFlAtivo(assunto2.getFlAtivo());
 
         //when
         when(modelMapper.map(assunto1, AssuntoDtoOutput.class)).thenReturn(assuntoDto1);
@@ -91,16 +118,13 @@ class AssuntoServiceTest {
     @Test
     public void deveRetornarAssuntoAoBuscarIdValido() {
         // given
-        Assunto assunto = new Assunto();
-        assunto.setId(1);
-        assunto.setDescricao("descricao");
-        assunto.setDtCadastro(LocalDate.now());
-        assunto.setFlAtivo('s');
+        Assunto assunto = new Assunto();//1, "descricao", LocalDate.now(), 's');
+
         AssuntoDtoOutput assuntoDto = new AssuntoDtoOutput();
-        assuntoDto.setId(assunto.getId());
-        assuntoDto.setDescricao(assunto.getDescricao());
-        assuntoDto.setDtCadastro(assunto.getDtCadastro().toString());
-        assuntoDto.setFlAtivo(assunto.getFlAtivo());
+//        assuntoDto.setId(assunto.getId());
+//        assuntoDto.setDescricao(assunto.getDescricao());
+//        assuntoDto.setDtCadastro(assunto.getDtCadastro().toString());
+//        assuntoDto.setFlAtivo(assunto.getFlAtivo());
 
         // when
         when(modelMapper.map(assunto, AssuntoDtoOutput.class)).thenReturn(assuntoDto);
@@ -108,11 +132,10 @@ class AssuntoServiceTest {
 
         // then
         ResponseEntity<?> responseEntity = service.buscarAssuntoPeloId(1);
-        AssuntoDtoOutput responseBody = (AssuntoDtoOutput) responseEntity.getBody();
 
         assertAll(
                 () -> assertEquals(OK, responseEntity.getStatusCode()),
-                () -> assertThat(responseBody, is(equalTo(assuntoDto))),
+                () -> assertThat(responseEntity.getBody(), is(equalTo(assuntoDto))),
                 () -> verify(repository, times(1)).findById(1)
         );
     }
@@ -135,14 +158,12 @@ class AssuntoServiceTest {
     public void deveRetornarStatusCreatedAoCadastrarAssuntoValido() {
         // given
         AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
-        assuntoDto.setDescricao("descricao");
-        assuntoDto.setDtCadastro("2020-01-01");
-        assuntoDto.setFlAtivo('s');
-
-        Assunto assunto = new Assunto(1, assuntoDto.getDescricao(),
-                LocalDate.parse(assuntoDto.getDtCadastro()), assuntoDto.getFlAtivo());
+        Assunto assunto = new Assunto();
 
         // when
+        when(ValidacaoCampos.validarCamposPreenchidos(assuntoDto)).thenReturn(true);
+        when(ValidacaoCampos.validarData(assuntoDto.getDtCadastro())).thenReturn(true);
+        when(ValidacaoCampos.validarFlAtivo(assuntoDto.getFlAtivo())).thenReturn(true);
         when(modelMapper.map(assuntoDto, Assunto.class)).thenReturn(assunto);
         when(repository.save(assunto)).thenReturn(assunto);
 
@@ -151,6 +172,7 @@ class AssuntoServiceTest {
 
         assertAll(
                 () -> assertEquals(CREATED, responseEntity.getStatusCode()),
+                () -> assertThat(responseEntity.getBody(), is(instanceOf(String.class))),
                 () -> verify(repository, times(1)).save(assunto)
         );
     }
@@ -160,10 +182,11 @@ class AssuntoServiceTest {
         assertThrows(CampoVazioException.class, () -> {
             // given
             AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
-            assuntoDto.setDescricao("descricao");
-            assuntoDto.setFlAtivo('s');
 
-            // when/then
+            // when
+            when(ValidacaoCampos.validarCamposPreenchidos(assuntoDto)).thenReturn(false);
+
+            // then
             service.cadastrarAssunto(assuntoDto);
         });
     }
@@ -173,11 +196,12 @@ class AssuntoServiceTest {
         assertThrows(DataInvalidaException.class, () -> {
             // given
             AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
-            assuntoDto.setDescricao("descricao");
-            assuntoDto.setDtCadastro("2020-02-31");
-            assuntoDto.setFlAtivo('s');
 
-            // when/then
+            // when
+            when(ValidacaoCampos.validarCamposPreenchidos(assuntoDto)).thenReturn(true);
+            when(ValidacaoCampos.validarData(assuntoDto.getDtCadastro())).thenReturn(false);
+
+            // then
             service.cadastrarAssunto(assuntoDto);
         });
     }
@@ -187,11 +211,13 @@ class AssuntoServiceTest {
         assertThrows(FlAtivoInvalidoException.class, () -> {
             // given
             AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
-            assuntoDto.setDescricao("descricao");
-            assuntoDto.setDtCadastro("2020-01-01");
-            assuntoDto.setFlAtivo('y');
 
-            // when/then
+            // when
+            when(ValidacaoCampos.validarCamposPreenchidos(assuntoDto)).thenReturn(true);
+            when(ValidacaoCampos.validarData(assuntoDto.getDtCadastro())).thenReturn(true);
+            when(ValidacaoCampos.validarFlAtivo(assuntoDto.getFlAtivo())).thenReturn(false);
+
+            // then
             service.cadastrarAssunto(assuntoDto);
         });
     }
