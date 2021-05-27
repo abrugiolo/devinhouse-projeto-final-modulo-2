@@ -1,19 +1,16 @@
 package br.com.devinhouse.projetofinalmodulo2.services;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.springframework.http.HttpStatus;
+import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
+import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
+import br.com.devinhouse.projetofinalmodulo2.utils.ValidacaoCampos;
+import org.mockito.MockedStatic;
 import org.springframework.http.ResponseEntity;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +19,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
 import br.com.devinhouse.projetofinalmodulo2.dto.AssuntoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoOutput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
@@ -30,7 +31,6 @@ import br.com.devinhouse.projetofinalmodulo2.exceptions.InteressadoInativoExcept
 import br.com.devinhouse.projetofinalmodulo2.exceptions.NotFoundException;
 import br.com.devinhouse.projetofinalmodulo2.repository.InteressadoRepository;
 import br.com.devinhouse.projetofinalmodulo2.repository.ProcessoRepository;
-import br.com.devinhouse.projetofinalmodulo2.utils.ValidacaoCampos;
 
 @ExtendWith(MockitoExtension.class)
 class ProcessoServiceTest {
@@ -43,9 +43,6 @@ class ProcessoServiceTest {
 
 	@Mock
 	private ModelMapper modelMapper;
-
-	@Mock
-	private ValidacaoCampos validacaoCampos;
 
 	@InjectMocks
 	private ProcessoService service;
@@ -64,7 +61,7 @@ class ProcessoServiceTest {
 		ResponseEntity<?> responseEntity = service.buscarProcessosPorInteressado(1);
 		List<AssuntoDtoOutput> lista = (List<AssuntoDtoOutput>) responseEntity.getBody();
 
-		assertAll(() -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+		assertAll(() -> assertEquals(OK, responseEntity.getStatusCode()),
 				() -> assertThat(lista, is(not(empty()))));
 	}
 
@@ -99,7 +96,7 @@ class ProcessoServiceTest {
 		ResponseEntity<?> responseEntity = service.buscarTodosOsProcessos();
 		List<ProcessoDtoOutput> lista = (List<ProcessoDtoOutput>) responseEntity.getBody();
 
-		assertAll(() -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+		assertAll(() -> assertEquals(OK, responseEntity.getStatusCode()),
 				() -> assertThat(lista, is(not(empty()))));
 	}
 
@@ -121,7 +118,7 @@ class ProcessoServiceTest {
 		ResponseEntity<?> responseEntity = service.buscarProcessoPeloId(1);
 		Processo processoAtual = (Processo) responseEntity.getBody();
 
-		assertAll(() -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+		assertAll(() -> assertEquals(OK, responseEntity.getStatusCode()),
 				() -> assertEquals(processoAtual, null));
 	}
 
@@ -144,7 +141,7 @@ class ProcessoServiceTest {
 		ResponseEntity<?> responseEntity = service.buscarProcessoPeloNumeroProcesso(1);
 		ProcessoDtoOutput processoAtual = (ProcessoDtoOutput) responseEntity.getBody();
 
-		assertAll(() -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+		assertAll(() -> assertEquals(OK, responseEntity.getStatusCode()),
 				() -> assertEquals(processoAtual.getClass(), ProcessoDtoOutput.class));
 	}
 
@@ -157,13 +154,29 @@ class ProcessoServiceTest {
 	}
 
 	@Test
-	void testAtualizarProcesso() {
-		fail("Not yet implemented");
+	public void deveRetornarOkAoDeletarProcessoExistente() {
+
+		when(repositoryProcesso.existsById(1)).thenReturn(true);
+
+		ResponseEntity responseEntity = service.deletarProcesso(1);
+
+		assertAll(
+				() -> assertEquals(OK, responseEntity.getStatusCode()),
+				() -> verify(repositoryProcesso, times(1)).deleteById(1)
+		);
 	}
 
 	@Test
-	void testDeletarProcesso() {
-		fail("Not yet implemented");
+	public void deveLancarExcecaoAoDeletarProcessoInexistente() {
+
+		assertThrows(NotFoundException.class, () -> {
+
+			when(repositoryProcesso.existsById(1)).thenReturn(false);
+
+			service.deletarProcesso(1);
+		});
+
+		verify(repositoryProcesso, times(0)).deleteById(1);
 	}
 
 }

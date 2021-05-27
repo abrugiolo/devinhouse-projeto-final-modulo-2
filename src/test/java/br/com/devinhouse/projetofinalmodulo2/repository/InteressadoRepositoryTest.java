@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -20,7 +21,7 @@ class InteressadoRepositoryTest {
 	void tearDown() {
 		repository.deleteAll();
 	}
-	
+
 	@Test
 	void testFindByNuIdentificacao() {
 		String nuIdentificacao = "12345678901";
@@ -28,7 +29,7 @@ class InteressadoRepositoryTest {
 		
 		assertEquals(nuIdentificacao, interessado.get().getNuIdentificacao());
 	}
-	
+
 	@Test
 	void testExistsByNuIdentificacao() {
 		String nuIdentificacao = "12345678901";
