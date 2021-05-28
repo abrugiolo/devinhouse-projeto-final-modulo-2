@@ -1,21 +1,59 @@
 ###
-GET http://localhost:8081/processo/
+GET http://localhost:8080/assunto/v1
 
 ###
-GET http://localhost:8081/processo/id/8
+GET http://localhost:8080/interessado/v1
 
 ###
-GET http://localhost:8081/processo/numero/1
+GET http://localhost:8080/processo/v1
 
 ###
-POST http://localhost:8081/processo/
+GET http://localhost:8080/assunto/v1/2
+
+###
+GET http://localhost:8080/interessado/v1/2
+
+###
+GET http://localhost:8080/interessado/v1?nu_identificacao=22222222222
+
+###
+GET http://localhost:8080/processo/v1/1
+
+###
+GET http://localhost:8080/processo/v1?id-interessado=1
+
+###
+GET http://localhost:8080/processo/v1?nu-processo=2
+
+###
+POST http://localhost:8080/assunto/v1
 Content-Type: application/json
 
 {
-  "nuProcesso": 1,
+  "descricao": "descricao",
+  "dtCadastro": "2021-05-24",
+  "flAtivo": "n"
+}
+
+###
+POST http://localhost:8080/interessado/v1
+Content-Type: application/json
+
+{
+  "nmInteressado": "fulano",
+  "nuIdentificacao": "22222222222",
+  "dtNascimento": "1951-01-01",
+  "flAtivo": "n"
+}
+
+###
+POST http://localhost:8080/processo/v1
+Content-Type: application/json
+
+{
+  "sgOrgaoSetor": "SOFT",
   "nuAno": "2021",
-  "chaveProcesso": "SOFT 6/2021",
-  "descricao": "teste processo 1",
+  "descricao": "descricao",
   "cdAssunto": {
     "id": 1
   },
@@ -23,3 +61,19 @@ Content-Type: application/json
     "id": 1
   }
 }
+
+###
+DELETE http://localhost:8080/processo/v1/3
+
+###
+PUT http://localhost:8080/processo/v1/1
+Content-Type: application/json
+
+{
+  "descricao": "asdasd"
+}
+
+###
+GET http://localhost:8080/processo/v1/1
+
+###

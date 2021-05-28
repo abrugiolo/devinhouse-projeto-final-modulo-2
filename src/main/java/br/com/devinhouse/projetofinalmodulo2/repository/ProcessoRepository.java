@@ -11,7 +11,7 @@ import br.com.devinhouse.projetofinalmodulo2.entity.Processo;
 
 @Repository
 public interface ProcessoRepository extends JpaRepository<Processo, Integer>{
-	List<Processo> findBycdInteressado(Interessado interessado);
+	List<Processo> findByCdInteressado(Interessado interessado);
 
 	Optional<Processo> findByNuProcesso(Integer nuProcesso);
 

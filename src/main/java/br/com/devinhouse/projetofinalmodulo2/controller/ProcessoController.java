@@ -1,66 +1,50 @@
 package br.com.devinhouse.projetofinalmodulo2.controller;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDto;
-import br.com.devinhouse.projetofinalmodulo2.entity.Interessado;
-import br.com.devinhouse.projetofinalmodulo2.entity.Processo;
+import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.services.ProcessoService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
-@RequestMapping(path = "/processo")
+@RequestMapping(path = "/processo/v1")
 public class ProcessoController {
-	
+
 	@Autowired
 	private ProcessoService processoService;
-	
-	@Autowired
-	private ModelMapper modelMapper;
 
-	@GetMapping(path = "/{interessado}")
-	public ResponseEntity<List<ProcessoDto>> buscarProcessosPorInteressado(@PathVariable Interessado interessado) {
-		List<Processo> listaProcessos = processoService.buscarProcessosPorInteressado(interessado);
-		List<ProcessoDto> listaProcessosDto = listaProcessos
-				.stream()
-				.map(this::converteParaDto)
-				.collect(Collectors.toList());
-		return ResponseEntity.ok(listaProcessosDto);
-	}
-	
-	private ProcessoDto converteParaDto(Processo processo) {
-		return modelMapper.map(processo, ProcessoDto.class);
-	}
+	@GetMapping(path = {"", "/{id-processo}"}, produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> pesquisarProcesso(@RequestParam(name = "id-interessado", required = false) Integer idInteressado,
+											   @PathVariable(name = "id-processo", required = false) Integer idProcesso,
+											   @RequestParam(name = "nu-processo", required = false) Integer nuProcesso) {
 
-	@GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
-	public List<Processo> listarTodosOsProcessos() {
-
+		if (idInteressado != null) {
+			return processoService.buscarProcessosPorInteressado(idInteressado);
+		}
+		if (idProcesso != null) {
+			return processoService.buscarProcessoPeloId(idProcesso);
+		}
+		if (nuProcesso != null) {
+			return processoService.buscarProcessoPeloNumeroProcesso(nuProcesso);
+		}
 		return processoService.buscarTodosOsProcessos();
 	}
 
-	@GetMapping(value = "/id/{id}", produces = APPLICATION_JSON_VALUE)
-	public Processo buscarProcessoPeloId(@PathVariable Integer id) {
-
-		return processoService.buscarProcessoPeloId(id);
-	}
-
-	// ERRO AQUI!
-	@GetMapping(value = "/numero/{nuProcesso}", produces = APPLICATION_JSON_VALUE)
-	public Processo buscarProcessoPeloNumero(@PathVariable Integer nuProcesso) {
-
-		return processoService.buscarProcessoPeloNumero(nuProcesso);
-	}
-
-	@PostMapping(value = "/", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-	public Processo cadastrarProcesso(@RequestBody Processo processo) {
-
+	@PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> cadastrarProcesso(@RequestBody ProcessoDtoInput processo) {
 		return processoService.cadastrarProcesso(processo);
+	}
+
+	@PutMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> atualizarCadastro(@PathVariable Integer id, @RequestBody ProcessoDtoInput processoDto) {
+		return processoService.atualizarProcesso(id, processoDto);
+	}
+
+	@DeleteMapping(path = "/{id}")
+	public ResponseEntity<?> deletarProcesso(@PathVariable Integer id) {
+		return processoService.deletarProcesso(id);
 	}
 }
