@@ -16,7 +16,6 @@ import br.com.devinhouse.projetofinalmodulo2.entity.Processo;
 import br.com.devinhouse.projetofinalmodulo2.repository.AssuntoRepository;
 import br.com.devinhouse.projetofinalmodulo2.repository.InteressadoRepository;
 import br.com.devinhouse.projetofinalmodulo2.repository.ProcessoRepository;
-import br.com.devinhouse.projetofinalmodulo2.utils.MascaraChaveProcesso;
 import br.com.devinhouse.projetofinalmodulo2.utils.ValidacaoCampos;
 
 import static org.springframework.http.HttpStatus.*;
@@ -42,6 +41,10 @@ public class ProcessoService {
 
 	private Processo converteParaProcesso(ProcessoDtoInput processoDto) {
 		return modelMapper.map(processoDto, Processo.class);
+	}
+
+	public String gerarChaveProcesso(String sgOrgaoSetor, Integer nuProcesso, String nuAno) {
+		return (sgOrgaoSetor + " " + nuProcesso + "/" + nuAno).toUpperCase();
 	}
 
 	private Integer retornarUltimoNuProcesso() {
@@ -104,7 +107,7 @@ public class ProcessoService {
 		}
 		
 		processoDto.setNuProcesso(retornarUltimoNuProcesso());
-		processoDto.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(processoDto.getSgOrgaoSetor(),
+		processoDto.setChaveProcesso(gerarChaveProcesso(processoDto.getSgOrgaoSetor(),
 				processoDto.getNuProcesso(), processoDto.getNuAno()));
 
 		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) {
@@ -147,7 +150,7 @@ public class ProcessoService {
 		if (processoDto.getCdInteressado() != null) {
 			processo.setCdInteressado(processoDto.getCdInteressado());
 		}
-		processo.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(processo.getSgOrgaoSetor(),
+		processo.setChaveProcesso(gerarChaveProcesso(processo.getSgOrgaoSetor(),
 				processo.getNuProcesso(), processo.getNuAno()));
 
 		if (processoRepository.existsByChaveProcesso(processo.getChaveProcesso())) {

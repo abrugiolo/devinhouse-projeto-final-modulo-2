@@ -1,6 +1,5 @@
 package br.com.devinhouse.projetofinalmodulo2.services;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -8,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import br.com.devinhouse.projetofinalmodulo2.dto.ProcessoDtoInput;
 import br.com.devinhouse.projetofinalmodulo2.entity.Assunto;
 import br.com.devinhouse.projetofinalmodulo2.utils.ValidacaoCampos;
-import org.mockito.MockedStatic;
+import org.mockito.*;
 import org.springframework.http.ResponseEntity;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import java.time.LocalDate;
@@ -20,9 +19,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import static org.hamcrest.Matchers.*;
@@ -220,6 +216,7 @@ class ProcessoServiceTest {
 		Interessado interessado = new Interessado();
 		Assunto assunto = new Assunto();
 		processoList.add(new Processo(1, "SOFT", 1, "2021", "SOFT 1/2021", "Descricao", assunto, interessado));
+		Processo processo = new Processo();
 
 		processoDtoInput.setCdAssunto(assunto);
 		processoDtoInput.setCdInteressado(interessado);
@@ -229,7 +226,12 @@ class ProcessoServiceTest {
 
 		valida.when(() -> ValidacaoCampos.validarCamposPreenchidos(processoDtoInput)).thenReturn(true);
 		when(repositoryProcesso.findAll()).thenReturn(processoList);
-		
+		when(repositoryProcesso.existsByChaveProcesso(anyString())).thenReturn(false);
+		valida.when(() -> ValidacaoCampos.validadorInteressadoInativo(repositoryInteressado, interessado)).thenReturn(false);
+		valida.when(() -> ValidacaoCampos.validadorAssuntoInativo(repositoryAssunto, assunto)).thenReturn(false);
+		when(modelMapper.map(processoDtoInput, Processo.class)).thenReturn(processo);
+		when(repositoryProcesso.save(processo)).thenReturn(processo);
+
 		ResponseEntity<?> responseEntity = service.cadastrarProcesso(processoDtoInput);
         
 		assertAll(() -> assertEquals(CREATED, responseEntity.getStatusCode()),
