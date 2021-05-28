@@ -147,6 +147,7 @@ public class ProcessoService {
 		if (processoDto.getCdInteressado() != null) {
 			processo.setCdInteressado(processoDto.getCdInteressado());
 		}
+		
 		processo.setChaveProcesso(MascaraChaveProcesso.gerarChaveProcesso(processo.getSgOrgaoSetor(),
 				processo.getNuProcesso(), processo.getNuAno()));
 

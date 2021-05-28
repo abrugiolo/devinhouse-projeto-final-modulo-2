@@ -32,5 +32,4 @@ public class InteressadoController {
 
         return interessadoService.cadastrarInteressado(interessadoDtoInput);
     }
-
 }

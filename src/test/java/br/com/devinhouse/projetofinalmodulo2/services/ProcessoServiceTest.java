@@ -68,7 +68,6 @@ class ProcessoServiceTest {
         valida.close();
     }
 	
-
     @BeforeAll
     public static void setup() {
         valida = mockStatic(ValidacaoCampos.class);

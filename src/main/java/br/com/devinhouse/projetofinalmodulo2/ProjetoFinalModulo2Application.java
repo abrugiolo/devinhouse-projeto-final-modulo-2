@@ -9,5 +9,4 @@ public class ProjetoFinalModulo2Application {
 	public static void main(String[] args) {
 		SpringApplication.run(ProjetoFinalModulo2Application.class, args);
 	}
-
 }
