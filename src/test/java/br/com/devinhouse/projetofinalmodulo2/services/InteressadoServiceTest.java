@@ -115,19 +115,14 @@ class InteressadoServiceTest {
     }
 
     @Test
-    public void deveRetornarInteressadoAoBuscarIdValido() {
+    public void deveRetornarInteressadoAoBuscarPorId() {
         // given
-        Interessado interessado = new Interessado(1, "fulano", "12345654321", LocalDate.parse("1950-01-01"), 's');
+        Interessado interessado = new Interessado();
         InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput();
-        interessadoDto.setId(interessado.getId());
-        interessadoDto.setNmInteressado(interessado.getNmInteressado());
-        interessadoDto.setNuIdentificacao(interessado.getNuIdentificacao());
-        interessadoDto.setDtNascimento(interessado.getDtNascimento().toString());
-        interessadoDto.setFlAtivo(interessado.getFlAtivo());
 
         // when
-        when(modelMapper.map(interessado, InteressadoDtoOutput.class)).thenReturn(interessadoDto);
         when(repository.findById(1)).thenReturn(Optional.of(interessado));
+        when(modelMapper.map(interessado, InteressadoDtoOutput.class)).thenReturn(interessadoDto);
 
         // then
         ResponseEntity<?> responseEntity = service.buscarInteressadoPeloId(1);
@@ -140,7 +135,7 @@ class InteressadoServiceTest {
     }
 
     @Test
-    public void deveLancarExcecaoAoBuscarIdInexistente() {
+    public void deveLancarExcecaoAoBuscarPorIdInexistente() {
         assertThrows(NotFoundException.class, () -> {
             // given
             Optional<Interessado> interessado = Optional.empty();
@@ -154,7 +149,7 @@ class InteressadoServiceTest {
     }
 
     @Test
-    public void deveRetornarInteressadoAoBuscarNuIdentificacaoValido() {
+    public void deveRetornarInteressadoAoBuscarNuIdentificacao() {
         // given
         Interessado interessado = new Interessado(1, "fulano", "12345654321", LocalDate.parse("1950-01-01"), 's');
         InteressadoDtoOutput interessadoDto = new InteressadoDtoOutput();
@@ -193,7 +188,7 @@ class InteressadoServiceTest {
     }
 
     @Test
-    public void deveRetornarCreatedAoCadastrarInteressadoValido() {
+    public void deveRetornarCreatedAoCadastrarInteressado() {
         // given
         InteressadoDtoInput interessadoDto = new InteressadoDtoInput();
         interessadoDto.setNuIdentificacao("12345654321");

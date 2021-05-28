@@ -114,19 +114,14 @@ class AssuntoServiceTest {
     }
 
     @Test
-    public void deveRetornarAssuntoAoBuscarIdValido() {
+    public void deveRetornarAssuntoAoBuscarPorId() {
         // given
-        Assunto assunto = new Assunto();//1, "descricao", LocalDate.now(), 's');
-
+        Assunto assunto = new Assunto();
         AssuntoDtoOutput assuntoDto = new AssuntoDtoOutput();
-//        assuntoDto.setId(assunto.getId());
-//        assuntoDto.setDescricao(assunto.getDescricao());
-//        assuntoDto.setDtCadastro(assunto.getDtCadastro().toString());
-//        assuntoDto.setFlAtivo(assunto.getFlAtivo());
 
         // when
-        when(modelMapper.map(assunto, AssuntoDtoOutput.class)).thenReturn(assuntoDto);
         when(repository.findById(1)).thenReturn(Optional.of(assunto));
+        when(modelMapper.map(assunto, AssuntoDtoOutput.class)).thenReturn(assuntoDto);
 
         // then
         ResponseEntity<?> responseEntity = service.buscarAssuntoPeloId(1);
@@ -139,7 +134,7 @@ class AssuntoServiceTest {
     }
 
     @Test
-    public void deveLancarExcecaoAoBuscarIdInvalido() {
+    public void deveLancarExcecaoAoBuscarPorIdInexistente() {
         assertThrows(NotFoundException.class, () -> {
             // given
             Optional<Assunto> assunto = Optional.empty();
@@ -153,7 +148,7 @@ class AssuntoServiceTest {
     }
 
     @Test
-    public void deveRetornarStatusCreatedAoCadastrarAssuntoValido() {
+    public void deveRetornarStatusCreatedAoCadastrarAssunto() {
         // given
         AssuntoDtoInput assuntoDto = new AssuntoDtoInput();
         Assunto assunto = new Assunto();
@@ -162,6 +157,7 @@ class AssuntoServiceTest {
         when(ValidacaoCampos.validarCamposPreenchidos(assuntoDto)).thenReturn(true);
         when(ValidacaoCampos.validarData(assuntoDto.getDtCadastro())).thenReturn(true);
         when(ValidacaoCampos.validarFlAtivo(assuntoDto.getFlAtivo())).thenReturn(true);
+
         when(modelMapper.map(assuntoDto, Assunto.class)).thenReturn(assunto);
         when(repository.save(assunto)).thenReturn(assunto);
 

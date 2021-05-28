@@ -74,7 +74,7 @@ public class ProcessoService {
 	public ResponseEntity<?> buscarTodosOsProcessos() {
 		List<Processo> listaProcessos = processoRepository.findAll();
 		if (listaProcessos.isEmpty()) {
-			throw new NotFoundException("Não existem processos cadastrados.");
+			return new ResponseEntity<>("Não existem processos cadastrados.", OK);
 		}
 		List<ProcessoDtoOutput> listaProcessoDto = listaProcessos.stream().map(this::converteParaDto)
 				.collect(Collectors.toList());
@@ -105,15 +105,6 @@ public class ProcessoService {
 		if (!ValidacaoCampos.validarCamposPreenchidos(processoDto)) {
 			throw new CampoVazioException("Todos os campos devem estar preenchidos.");
 		}
-		
-		processoDto.setNuProcesso(retornarUltimoNuProcesso());
-		processoDto.setChaveProcesso(gerarChaveProcesso(processoDto.getSgOrgaoSetor(),
-				processoDto.getNuProcesso(), processoDto.getNuAno()));
-
-		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) {
-			throw new ChaveProcessoJaExisteException(String.format("Já existe um processo cadastrado com a chave '%s'.",
-					processoDto.getChaveProcesso()));
-		}
 
 		if (ValidacaoCampos.validadorInteressadoInativo(interessadoRepository, processoDto.getCdInteressado())) {
 			throw new InteressadoInativoException(
@@ -122,6 +113,15 @@ public class ProcessoService {
 
 		if (ValidacaoCampos.validadorAssuntoInativo(assuntoRepository, processoDto.getCdAssunto())) {
 			throw new AssuntoInativoException("Não foi possível cadastrar o processo: Assunto inativo ou inexistente.");
+		}
+
+		processoDto.setNuProcesso(retornarUltimoNuProcesso());
+		processoDto.setChaveProcesso(gerarChaveProcesso(processoDto.getSgOrgaoSetor(),
+				processoDto.getNuProcesso(), processoDto.getNuAno()));
+
+		if (processoRepository.existsByChaveProcesso(processoDto.getChaveProcesso())) {
+			throw new ChaveProcessoJaExisteException(String.format("Já existe um processo cadastrado com a chave '%s'.",
+					processoDto.getChaveProcesso()));
 		}
 
 		Processo processo = converteParaProcesso(processoDto);
@@ -135,9 +135,6 @@ public class ProcessoService {
 		if (processoDto.getSgOrgaoSetor() != null) {
 			processo.setSgOrgaoSetor(processoDto.getSgOrgaoSetor());
 		}
-		if (processoDto.getNuProcesso() != null) {
-			processo.setNuProcesso(processoDto.getNuProcesso());
-		}
 		if (processoDto.getNuAno() != null) {
 			processo.setNuAno(processoDto.getNuAno());
 		}
@@ -150,20 +147,22 @@ public class ProcessoService {
 		if (processoDto.getCdInteressado() != null) {
 			processo.setCdInteressado(processoDto.getCdInteressado());
 		}
-		processo.setChaveProcesso(gerarChaveProcesso(processo.getSgOrgaoSetor(),
-				processo.getNuProcesso(), processo.getNuAno()));
 
-		if (processoRepository.existsByChaveProcesso(processo.getChaveProcesso())) {
-			throw new ChaveProcessoJaExisteException("Chave do processo já existe no sistema.");
-		}
-
-		if (ValidacaoCampos.validadorInteressadoInativo(interessadoRepository, processoDto.getCdInteressado())) {
+		if (ValidacaoCampos.validadorInteressadoInativo(interessadoRepository, processo.getCdInteressado())) {
 			throw new InteressadoInativoException(
-					"Não foi possível cadastrar o processo: Interessado inativo ou inexistente.");
+					"Não foi possível atualizar o processo: Interessado inativo ou inexistente.");
 		}
 
-		if (ValidacaoCampos.validadorAssuntoInativo(assuntoRepository, processoDto.getCdAssunto())) {
-			throw new AssuntoInativoException("Não foi possível cadastrar o processo: Assunto inativo ou inexistente.");
+		if (ValidacaoCampos.validadorAssuntoInativo(assuntoRepository, processo.getCdAssunto())) {
+			throw new AssuntoInativoException("Não foi possível atualizar o processo: Assunto inativo ou inexistente.");
+		}
+
+		if ((processoDto.getSgOrgaoSetor() != null) || (processoDto.getNuAno() != null)) {
+			processo.setChaveProcesso(gerarChaveProcesso(processo.getSgOrgaoSetor(), processo.getNuProcesso(), processo.getNuAno()));
+
+			if (processoRepository.existsByChaveProcesso(processo.getChaveProcesso())) {
+				throw new ChaveProcessoJaExisteException("Chave do processo já existe no sistema.");
+			}
 		}
 
 		processoRepository.save(processo);
